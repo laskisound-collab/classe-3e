@@ -10,7 +10,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB6o4NS1nZJ-2QrPkUhom41Pq2ZNJioWuc",
@@ -26,8 +26,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Espongo le funzioni Firebase globalmente per l'app
-        window.fbDB = { db, ref, set, onValue, push, remove };
+        window.fbDB = { db, ref, set, onValue };
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
@@ -78,7 +77,6 @@
                 <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Compito</button>
             </div>
             <div id="list-compiti" class="space-y-3">
-                <!-- Caricamento -->
                 <p class="text-slate-400 text-center py-6">Caricamento in corso...</p>
             </div>
         </section>
@@ -153,7 +151,7 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Titolo / Descrizione principale</label>
                     <input type="text" id="inputTitle" required class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div id="dateFieldContainer">
+                <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Data e Ora Scadenza / Riferimento</label>
                     <input type="datetime-local" id="inputDate" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
@@ -162,8 +160,8 @@
                     <textarea id="inputDetails" rows="3" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Carica File PDF o Foto (Opzionale)</label>
-                    <input type="file" id="inputFile" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Link Foto o Documento (Opzionale)</label>
+                    <input type="url" id="inputFileUrl" placeholder="Incolla qui il link web del file (es. Google Drive, Imgur, ecc.)" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium shadow hover:bg-indigo-700 transition">Pubblica</button>
             </form>
@@ -185,7 +183,6 @@
                     dbData = val;
                 }
                 renderAll();
-                checkNotifications();
             });
         });
 
@@ -214,8 +211,7 @@
         }
 
         function toggleAdminModal() {
-            const modal = document.getElementById('adminModal');
-            modal.classList.toggle('hidden');
+            document.getElementById('adminModal').classList.toggle('hidden');
         }
 
         function checkAdminPassword() {
@@ -266,46 +262,34 @@
             const title = document.getElementById('inputTitle').value;
             const date = document.getElementById('inputDate').value;
             const details = document.getElementById('inputDetails').value;
-            const fileInput = document.getElementById('inputFile');
+            const fileUrl = document.getElementById('inputFileUrl').value;
 
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.innerText = "Salvataggio in corso...";
             saveBtn.disabled = true;
 
-            const finishSave = (fileUrl = '') => {
-                const { db, ref, set } = window.fbDB;
-                if (!dbData[section]) dbData[section] = {};
-                
-                const newItemId = 'item_' + Date.now();
-                dbData[section][newItemId] = {
-                    id: newItemId,
-                    title,
-                    date,
-                    details,
-                    fileUrl,
-                    createdAt: Date.now()
-                };
-
-                set(ref(db, 'classe3e'), dbData).then(() => {
-                    closeAddModal();
-                    saveBtn.innerText = "Pubblica";
-                    saveBtn.disabled = false;
-                }).catch(err => {
-                    alert('Errore di salvataggio: ' + err.message);
-                    saveBtn.innerText = "Pubblica";
-                    saveBtn.disabled = false;
-                });
+            const { db, ref, set } = window.fbDB;
+            if (!dbData[section]) dbData[section] = {};
+            
+            const newItemId = 'item_' + Date.now();
+            dbData[section][newItemId] = {
+                id: newItemId,
+                title,
+                date,
+                details,
+                fileUrl,
+                createdAt: Date.now()
             };
 
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    finishSave(uploadEvent.target.result); // Salva il file convertito in base64 leggero direttamente nel DB
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                finishSave('');
-            }
+            set(ref(db, 'classe3e'), dbData).then(() => {
+                closeAddModal();
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            }).catch(err => {
+                alert('Errore di salvataggio: ' + err.message);
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            });
         }
 
         function deleteItem(section, id) {
@@ -323,7 +307,7 @@
                         <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-600 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600 mt-2">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${item.fileUrl}" target="_blank" class="inline-block mt-3 text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Visualizza Allegato</a>` : ''}
+                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato / Foto</a>` : ''}
                     </div>
                     ${isAdmin ? `<button onclick="deleteItem('compiti', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
                 </div>
@@ -335,6 +319,7 @@
                         <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-slate-400 mt-0.5">${new Date(item.date).toLocaleDateString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600 mt-1">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-2 text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Allegato</a>` : ''}
                     </div>
                     <div class="flex items-center space-x-3">
                         ${isAdmin ? `<button onclick="deleteItem('fondo', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
@@ -348,7 +333,7 @@
                         <h3 class="font-bold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1.5 text-amber-600"></i>${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-amber-700 font-medium mt-1">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-amber-800 mt-2">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${item.fileUrl}" target="_blank" class="inline-block mt-3 text-xs bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-200"><i class="fa-solid fa-paperclip mr-1"></i> Visualizza Allegato</a>` : ''}
+                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-200"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato / Foto</a>` : ''}
                     </div>
                     ${isAdmin ? `<button onclick="deleteItem('avvisi', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
                 </div>
@@ -371,6 +356,7 @@
                         <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-600 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600 mt-2">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato</a>` : ''}
                     </div>
                     ${isAdmin ? `<button onclick="deleteItem('promemoria', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
                 </div>
@@ -397,36 +383,6 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        function checkNotifications() {
-            if (!("Notification" in window)) return;
-            if (Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-
-            const now = new Date().getTime();
-            ['compiti', 'promemoria'].forEach(sec => {
-                if (dbData[sec]) {
-                    Object.values(dbData[sec]).forEach(item => {
-                        if (item.date) {
-                            const targetTime = new Date(item.date).getTime();
-                            const diff = targetTime - now;
-                            // Se la scadenza è passata da meno di 5 minuti e non è già stata notificata in questa sessione
-                            if (diff <= 0 && diff > -300000 && !item.notified) {
-                                if (Notification.permission === "granted") {
-                                    new Notification("Scadenza Classe 3E 🚨", {
-                                        body: item.title,
-                                        icon: "https://cdn-icons-png.flaticon.com/512/3233/3233497.png"
-                                    });
-                                }
-                                item.notified = true;
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        setInterval(checkNotifications, 30000);
         updateAdminUI();
     </script>
 </body>
