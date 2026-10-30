@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -33,23 +33,33 @@
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .live-clock { animation: pulse-subtle 2s infinite; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+    <!-- Header con Orologio in Tempo Reale -->
+    <header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-700 text-white shadow-xl sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-white text-indigo-600 p-2 rounded-xl font-bold text-xl shadow">3E</div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 text-white p-2.5 rounded-2xl font-black text-xl shadow-inner flex items-center justify-center w-11 h-11">
+                    3E
+                </div>
                 <div>
-                    <h1 class="text-lg font-bold leading-tight">Classe 3E - Mariele Ventre</h1>
-                    <p class="text-xs text-indigo-200">Diario e Bacheca in Tempo Reale</p>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight leading-tight">Classe 3E - Mariele Ventre</h1>
+                    <div class="flex items-center space-x-2 text-xs text-indigo-200 mt-0.5">
+                        <span class="live-clock inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span id="liveClockDisplay" class="font-medium tracking-wide">Caricamento orologio...</span>
+                    </div>
                 </div>
             </div>
             <div>
-                <button id="adminBtn" onclick="toggleAdminModal()" class="bg-indigo-700 hover:bg-indigo-800 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1 shadow">
-                    <i class="fa-solid fa-lock text-xs" id="adminIcon"></i>
+                <button id="adminBtn" onclick="toggleAdminModal()" class="bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm">
+                    <i class="fa-solid fa-lock text-xs text-amber-300" id="adminIcon"></i>
                     <span id="adminText">Area Admin</span>
                 </button>
             </div>
@@ -57,121 +67,262 @@
     </header>
 
     <!-- Navigation Tabs -->
-    <nav class="bg-white shadow-sm border-b overflow-x-auto">
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b sticky top-[65px] z-40 overflow-x-auto">
         <div class="max-w-4xl mx-auto flex space-x-1 px-2 py-2">
-            <button onclick="switchTab('compiti')" class="tab-btn flex-1 py-2 px-3 text-sm font-medium rounded-lg text-indigo-600 bg-indigo-50 whitespace-nowrap transition" data-tab="compiti"><i class="fa-solid fa-book-open mr-1"></i> Compiti</button>
-            <button onclick="switchTab('fondo')" class="tab-btn flex-1 py-2 px-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition" data-tab="fondo"><i class="fa-solid fa-wallet mr-1"></i> Fondo Cassa</button>
-            <button onclick="switchTab('avvisi')" class="tab-btn flex-1 py-2 px-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition" data-tab="avvisi"><i class="fa-solid fa-bullhorn mr-1"></i> Avvisi</button>
-            <button onclick="switchTab('compleanni')" class="tab-btn flex-1 py-2 px-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition" data-tab="compleanni"><i class="fa-solid fa-cake-candles mr-1"></i> Compleanni</button>
-            <button onclick="switchTab('promemoria')" class="tab-btn flex-1 py-2 px-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition" data-tab="promemoria"><i class="fa-solid fa-clock mr-1"></i> Promemoria</button>
+            <button onclick="switchTab('compiti')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-indigo-600 bg-indigo-50/80 shadow-sm whitespace-nowrap transition flex items-center space-x-1.5" data-tab="compiti"><i class="fa-solid fa-book-open"></i><span>Compiti</span></button>
+            <button onclick="switchTab('orario')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="orario"><i class="fa-solid fa-calendar-days"></i><span>Orario Lezioni</span></button>
+            <button onclick="switchTab('fondo')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
+            <button onclick="switchTab('avvisi')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
+            <button onclick="switchTab('galleria')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="galleria"><i class="fa-solid fa-images"></i><span>Galleria Foto</span></button>
+            <button onclick="switchTab('sondaggi')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="sondaggi"><i class="fa-solid fa-square-poll-vertical"></i><span>Sondaggi</span></button>
+            <button onclick="switchTab('linkutili')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="linkutili"><i class="fa-solid fa-link"></i><span>Link Utili</span></button>
+            <button onclick="switchTab('compleanni')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="compleanni"><i class="fa-solid fa-cake-candles"></i><span>Compleanni</span></button>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full pb-20">
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full pb-20 space-y-6">
         
         <!-- SEZIONE COMPITI -->
         <section id="compiti" class="tab-content active space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">Compiti e Attività</h2>
-                <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Compito</button>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Diario dei Compiti</h2>
+                    <p class="text-xs text-slate-500">Attività e consegne per casa aggiornate</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <select id="filterMateria" onchange="renderAll()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none">
+                        <option value="tutte">Tutte le materie</option>
+                        <option value="Italiano">Italiano</option>
+                        <option value="Matematica">Matematica</option>
+                        <option value="Inglese">Inglese</option>
+                        <option value="Storia/Geografia">Storia / Geografia</option>
+                        <option value="Scienze">Scienze</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                    <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition whitespace-nowrap flex items-center space-x-1">
+                        <i class="fa-solid fa-plus"></i><span>Nuovo</span>
+                    </button>
+                </div>
             </div>
             <div id="list-compiti" class="space-y-3">
-                <p class="text-slate-400 text-center py-6">Caricamento in corso...</p>
+                <p class="text-slate-400 text-center py-6 text-sm">Caricamento in corso...</p>
+            </div>
+        </section>
+
+        <!-- SEZIONE ORARIO SCOLASTICO -->
+        <section id="orario" class="tab-content space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Orario Scolastico Settimanale</h2>
+                        <p class="text-xs text-slate-500">Quadro delle lezioni per preparare lo zaino</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Lunedì</h4>
+                        <ul class="text-xs text-slate-600 space-y-1.5">
+                            <li>• Italiano</li>
+                            <li>• Matematica</li>
+                            <li>• Inglese</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Martedì</h4>
+                        <ul class="text-xs text-slate-600 space-y-1.5">
+                            <li>• Storia / Geografia</li>
+                            <li>• Italiano</li>
+                            <li>• Arte e Immagine</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Mercoledì</h4>
+                        <ul class="text-xs text-slate-600 space-y-1.5">
+                            <li>• Matematica</li>
+                            <li>• Scienze</li>
+                            <li>• Educazione Motoria</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Giovedì</h4>
+                        <ul class="text-xs text-slate-600 space-y-1.5">
+                            <li>• Italiano</li>
+                            <li>• Inglese</li>
+                            <li>• Religione / Alternativa</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Venerdì</h4>
+                        <ul class="text-xs text-slate-600 space-y-1.5">
+                            <li>• Matematica</li>
+                            <li>• Storia / Geografia</li>
+                            <li>• Musica</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- SEZIONE FONDO CASSA -->
         <section id="fondo" class="tab-content space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">Fondo Cassa di Classe</h2>
-                <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Spesa/Entrata</button>
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Fondo Cassa di Classe</h2>
+                    <p class="text-xs text-slate-500">Bilancio e spese trasparenti</p>
+                </div>
+                <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Movimento</span>
+                </button>
             </div>
             <div id="list-fondo" class="space-y-3"></div>
         </section>
 
         <!-- SEZIONE AVVISI -->
         <section id="avvisi" class="tab-content space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">Avvisi Importanti</h2>
-                <button onclick="openAddModal('avvisi')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Pubblica Avviso</button>
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Avvisi Importanti</h2>
+                    <p class="text-xs text-slate-500">Comunicazioni ufficiali per i genitori</p>
+                </div>
+                <button onclick="openAddModal('avvisi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Pubblica Avviso</span>
+                </button>
             </div>
             <div id="list-avvisi" class="space-y-3"></div>
         </section>
 
-        <!-- SEZIONE COMPLEANNI -->
-        <section id="compleanni" class="tab-content space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">Compleanni Compagni</h2>
-                <button onclick="openAddModal('compleanni')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Compleanno</button>
+        <!-- SEZIONE GALLERIA FOTO -->
+        <section id="galleria" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Galleria Ricordi & Gite</h2>
+                    <p class="text-xs text-slate-500">Foto e album dei momenti speciali della 3E</p>
+                </div>
+                <button onclick="openAddModal('galleria')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Foto/Album</span>
+                </button>
             </div>
-            <div id="list-compleanni" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            <div id="list-galleria" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
         </section>
 
-        <!-- SEZIONE PROMEMORIA -->
-        <section id="promemoria" class="tab-content space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">Promemoria e Scadenze</h2>
-                <button onclick="openAddModal('promemoria')" class="admin-only hidden bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow hover:bg-indigo-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Promemoria</button>
+        <!-- SEZIONE SONDAGGI -->
+        <section id="sondaggi" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Sondaggi & Adesioni</h2>
+                    <p class="text-xs text-slate-500">Raccolta preferenze e risposte rapide</p>
+                </div>
+                <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
+                </button>
             </div>
-            <div id="list-promemoria" class="space-y-3"></div>
+            <div id="list-sondaggi" class="space-y-3"></div>
+        </section>
+
+        <!-- SEZIONE LINK UTILI -->
+        <section id="linkutili" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Link Utili della Scuola</h2>
+                    <p class="text-xs text-slate-500">Accesso rapido a portali e modulistica</p>
+                </div>
+                <button onclick="openAddModal('linkutili')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Link</span>
+                </button>
+            </div>
+            <div id="list-linkutili" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- SEZIONE COMPLEANNI -->
+        <section id="compleanni" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Compleanni Compagni</h2>
+                    <p class="text-xs text-slate-500">Festeggiamo insieme i nostri bambini</p>
+                </div>
+                <button onclick="openAddModal('compleanni')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Compleanno</span>
+                </button>
+            </div>
+            <div id="list-compleanni" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
         </section>
 
     </main>
 
     <!-- Modale Login Admin -->
-    <div id="adminModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+    <div id="adminModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
             <div class="flex justify-between items-center">
-                <h3 class="text-lg font-bold text-slate-800">Accesso Area Admin</h3>
-                <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <h3 class="text-lg font-bold text-slate-900">Accesso Area Admin</h3>
+                <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div id="adminLoginForm" class="space-y-3">
-                <p class="text-sm text-slate-600">Inserisci la password amministratore per abilitare la gestione.</p>
-                <input type="password" id="adminPasswordInput" placeholder="Password" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium shadow hover:bg-indigo-700 transition">Accedi</button>
+                <p class="text-xs text-slate-500">Inserisci la password amministratore per sbloccare i pulsanti di gestione.</p>
+                <input type="password" id="adminPasswordInput" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-2xl text-sm font-semibold shadow-md shadow-indigo-200 transition">Accedi</button>
             </div>
             <div id="adminLogoutDiv" class="hidden space-y-3">
-                <p class="text-sm text-green-600 font-medium"><i class="fa-solid fa-circle-check mr-1"></i> Sei autenticato come Admin.</p>
-                <button onclick="logoutAdmin()" class="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-medium shadow hover:bg-red-600 transition">Esci dall'Area Admin</button>
+                <p class="text-xs text-emerald-600 font-semibold flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> Autenticato come Amministratore.</p>
+                <button onclick="logoutAdmin()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2.5 rounded-2xl text-sm font-semibold transition">Esci dall'Area Admin</button>
             </div>
         </div>
     </div>
 
     <!-- Modale Inserimento Dati -->
-    <div id="dataModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div id="dataModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center">
-                <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Nuovo Elemento</h3>
-                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">Nuovo Elemento</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="dataForm" onsubmit="saveData(event)" class="space-y-3">
+            <form id="dataForm" onsubmit="saveData(event)" class="space-y-3.5">
                 <input type="hidden" id="currentSection">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Titolo / Descrizione principale</label>
-                    <input type="text" id="inputTitle" required class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Titolo / Argomento</label>
+                    <input type="text" id="inputTitle" required placeholder="Es. Compiti di Matematica o Uscita Didattica" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div id="materiaWrapper">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Materia</label>
+                    <select id="inputMateria" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Italiano">Italiano</option>
+                        <option value="Matematica">Matematica</option>
+                        <option value="Inglese">Inglese</option>
+                        <option value="Storia/Geografia">Storia / Geografia</option>
+                        <option value="Scienze">Scienze</option>
+                        <option value="Altro">Altro</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Data e Ora Scadenza / Riferimento</label>
-                    <input type="datetime-local" id="inputDate" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Data e Ora Scadenza / Riferimento (Opzionale)</label>
+                    <input type="datetime-local" id="inputDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Dettagli / Testo aggiuntivo</label>
-                    <textarea id="inputDetails" rows="3" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Dettagli / Testo aggiuntivo</label>
+                    <textarea id="inputDetails" rows="3" placeholder="Scrivi qui i dettagli..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Link Foto o Documento (Opzionale)</label>
-                    <input type="url" id="inputFileUrl" placeholder="Incolla qui il link web del file (es. Google Drive, Imgur, ecc.)" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Web / Foto / Album (Google Drive, YouTube, ecc.)</label>
+                    <input type="url" id="inputFileUrl" placeholder="https://..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <button type="submit" id="saveBtn" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium shadow hover:bg-indigo-700 transition">Pubblica</button>
+                <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl text-sm font-semibold shadow-md shadow-indigo-200 transition">Pubblica</button>
             </form>
         </div>
     </div>
 
-    <!-- Script Logica App & Firebase -->
+    <!-- Script Logica App, Firebase & Orologio -->
     <script>
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const clockEl = document.getElementById('liveClockDisplay');
+            if (clockEl) clockEl.innerText = now.toLocaleDateString('it-IT', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, fondo: {}, avvisi: {}, compleanni: {}, promemoria: {} };
+        let dbData = { compiti: {}, fondo: {}, avvisi: {}, galleria: {}, sondaggi: {}, linkutili: {}, compleanni: {} };
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -195,17 +346,17 @@
 
             if (isAdmin) {
                 adminOnlyElements.forEach(el => el.classList.remove('hidden'));
-                adminIcon.className = "fa-solid fa-lock-open text-xs text-emerald-300";
-                adminText.innerText = "Admin attivo";
-                adminLoginForm.classList.add('hidden');
-                adminLogoutDiv.classList.remove('hidden');
+                if (adminIcon) adminIcon.className = "fa-solid fa-lock-open text-xs text-emerald-300";
+                if (adminText) adminText.innerText = "Admin attivo";
+                if (adminLoginForm) adminLoginForm.classList.add('hidden');
+                if (adminLogoutDiv) adminLogoutDiv.classList.remove('hidden');
                 localStorage.setItem('isAdmin_3e', 'true');
             } else {
                 adminOnlyElements.forEach(el => el.classList.add('hidden'));
-                adminIcon.className = "fa-solid fa-lock text-xs";
-                adminText.innerText = "Area Admin";
-                adminLoginForm.classList.remove('hidden');
-                adminLogoutDiv.classList.add('hidden');
+                if (adminIcon) adminIcon.className = "fa-solid fa-lock text-xs text-amber-300";
+                if (adminText) adminText.innerText = "Area Admin";
+                if (adminLoginForm) adminLoginForm.classList.remove('hidden');
+                if (adminLogoutDiv) adminLogoutDiv.classList.add('hidden');
                 localStorage.setItem('isAdmin_3e', 'false');
             }
         }
@@ -235,20 +386,30 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('text-indigo-600', 'bg-indigo-50');
+                el.classList.remove('text-indigo-600', 'bg-indigo-50/80', 'shadow-sm');
                 el.classList.add('text-slate-600', 'hover:bg-slate-100');
             });
 
             document.getElementById(tabId).classList.add('active');
             const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
-            activeBtn.classList.add('text-indigo-600', 'bg-indigo-50');
-            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            if (activeBtn) {
+                activeBtn.classList.add('text-indigo-600', 'bg-indigo-50/80', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            }
         }
 
         function openAddModal(section) {
             document.getElementById('currentSection').value = section;
             document.getElementById('modalTitle').innerText = "Aggiungi a " + section.toUpperCase();
             document.getElementById('dataForm').reset();
+            
+            const materiaWrapper = document.getElementById('materiaWrapper');
+            if (section === 'compiti') {
+                materiaWrapper.classList.remove('hidden');
+            } else {
+                materiaWrapper.classList.add('hidden');
+            }
+
             document.getElementById('dataModal').classList.remove('hidden');
         }
 
@@ -259,131 +420,3 @@
         function saveData(e) {
             e.preventDefault();
             const section = document.getElementById('currentSection').value;
-            const title = document.getElementById('inputTitle').value;
-            const date = document.getElementById('inputDate').value;
-            const details = document.getElementById('inputDetails').value;
-            const fileUrl = document.getElementById('inputFileUrl').value;
-
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerText = "Salvataggio in corso...";
-            saveBtn.disabled = true;
-
-            const { db, ref, set } = window.fbDB;
-            if (!dbData[section]) dbData[section] = {};
-            
-            const newItemId = 'item_' + Date.now();
-            dbData[section][newItemId] = {
-                id: newItemId,
-                title,
-                date,
-                details,
-                fileUrl,
-                createdAt: Date.now()
-            };
-
-            set(ref(db, 'classe3e'), dbData).then(() => {
-                closeAddModal();
-                saveBtn.innerText = "Pubblica";
-                saveBtn.disabled = false;
-            }).catch(err => {
-                alert('Errore di salvataggio: ' + err.message);
-                saveBtn.innerText = "Pubblica";
-                saveBtn.disabled = false;
-            });
-        }
-
-        function deleteItem(section, id) {
-            if (confirm("Vuoi davvero eliminare questo elemento?")) {
-                const { db, ref, set } = window.fbDB;
-                delete dbData[section][id];
-                set(ref(db, 'classe3e'), dbData);
-            }
-        }
-
-        function renderAll() {
-            renderSection('compiti', 'list-compiti', item => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-start">
-                    <div>
-                        <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-indigo-600 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-slate-600 mt-2">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato / Foto</a>` : ''}
-                    </div>
-                    ${isAdmin ? `<button onclick="deleteItem('compiti', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                </div>
-            `);
-
-            renderSection('fondo', 'list-fondo', item => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-slate-400 mt-0.5">${new Date(item.date).toLocaleDateString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-slate-600 mt-1">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-2 text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Allegato</a>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        ${isAdmin ? `<button onclick="deleteItem('fondo', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                    </div>
-                </div>
-            `);
-
-            renderSection('avvisi', 'list-avvisi', item => `
-                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm flex justify-between items-start">
-                    <div>
-                        <h3 class="font-bold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1.5 text-amber-600"></i>${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-amber-700 font-medium mt-1">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-amber-800 mt-2">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-200"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato / Foto</a>` : ''}
-                    </div>
-                    ${isAdmin ? `<button onclick="deleteItem('avvisi', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                </div>
-            `);
-
-            renderSection('compleanni', 'list-compleanni', item => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-slate-800"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-slate-500 mt-1 font-medium">Data: ${item.date}</p>` : ''}
-                        ${item.details ? `<p class="text-xs text-slate-600 mt-1">${escapeHtml(item.details)}</p>` : ''}
-                    </div>
-                    ${isAdmin ? `<button onclick="deleteItem('compleanni', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                </div>
-            `);
-
-            renderSection('promemoria', 'list-promemoria', item => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-start">
-                    <div>
-                        <h3 class="font-bold text-slate-800">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-indigo-600 font-medium mt-1"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-slate-600 mt-2">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-block mt-3 text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100"><i class="fa-solid fa-paperclip mr-1"></i> Apri Allegato</a>` : ''}
-                    </div>
-                    ${isAdmin ? `<button onclick="deleteItem('promemoria', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                </div>
-            `);
-        }
-
-        function renderSection(sectionKey, containerId, templateFn) {
-            const container = document.getElementById(containerId);
-            const data = dbData[sectionKey];
-            
-            if (!data || Object.keys(data).length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center py-6 text-sm">Nessun elemento presente.</p>`;
-                return;
-            }
-
-            container.innerHTML = Object.values(data)
-                .sort((a, b) => b.createdAt - a.createdAt)
-                .map(templateFn)
-                .join('');
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        updateAdminUI();
-    </script>
-</body>
-</html>
