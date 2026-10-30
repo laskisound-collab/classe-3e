@@ -67,16 +67,13 @@
     </header>
 
     <!-- Navigation Tabs -->
-    <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b sticky top-[65px] z-40 overflow-x-auto">
-        <div class="max-w-4xl mx-auto flex space-x-1 px-2 py-2">
-            <button onclick="switchTab('compiti')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-indigo-600 bg-indigo-50/80 shadow-sm whitespace-nowrap transition flex items-center space-x-1.5" data-tab="compiti"><i class="fa-solid fa-book-open"></i><span>Compiti</span></button>
-            <button onclick="switchTab('orario')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="orario"><i class="fa-solid fa-calendar-days"></i><span>Orario Lezioni</span></button>
-            <button onclick="switchTab('fondo')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
-            <button onclick="switchTab('avvisi')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
-            <button onclick="switchTab('galleria')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="galleria"><i class="fa-solid fa-images"></i><span>Galleria Foto</span></button>
-            <button onclick="switchTab('sondaggi')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="sondaggi"><i class="fa-solid fa-square-poll-vertical"></i><span>Sondaggi</span></button>
-            <button onclick="switchTab('linkutili')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="linkutili"><i class="fa-solid fa-link"></i><span>Link Utili</span></button>
-            <button onclick="switchTab('compleanni')" class="tab-btn py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-1.5" data-tab="compleanni"><i class="fa-solid fa-cake-candles"></i><span>Compleanni</span></button>
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b sticky top-[65px] z-40">
+        <div class="max-w-4xl mx-auto flex space-x-1 px-2 py-2 overflow-x-auto">
+            <button onclick="switchTab('compiti')" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-indigo-600 bg-indigo-50/80 shadow-sm whitespace-nowrap transition flex items-center justify-center space-x-1.5" data-tab="compiti"><i class="fa-solid fa-book-open"></i><span>Compiti</span></button>
+            <button onclick="switchTab('fondo')" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center justify-center space-x-1.5" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
+            <button onclick="switchTab('avvisi')" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center justify-center space-x-1.5" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
+            <button onclick="switchTab('compleanni')" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center justify-center space-x-1.5" data-tab="compleanni"><i class="fa-solid fa-cake-candles"></i><span>Compleanni</span></button>
+            <button onclick="switchTab('promemoria')" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center justify-center space-x-1.5" data-tab="promemoria"><i class="fa-solid fa-clock"></i><span>Promemoria</span></button>
         </div>
     </nav>
 
@@ -85,82 +82,17 @@
         
         <!-- SEZIONE COMPITI -->
         <section id="compiti" class="tab-content active space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 gap-3">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900">Diario dei Compiti</h2>
                     <p class="text-xs text-slate-500">Attività e consegne per casa aggiornate</p>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <select id="filterMateria" onchange="renderAll()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none">
-                        <option value="tutte">Tutte le materie</option>
-                        <option value="Italiano">Italiano</option>
-                        <option value="Matematica">Matematica</option>
-                        <option value="Inglese">Inglese</option>
-                        <option value="Storia/Geografia">Storia / Geografia</option>
-                        <option value="Scienze">Scienze</option>
-                        <option value="Altro">Altro</option>
-                    </select>
-                    <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition whitespace-nowrap flex items-center space-x-1">
-                        <i class="fa-solid fa-plus"></i><span>Nuovo</span>
-                    </button>
-                </div>
+                <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Nuovo Compito</span>
+                </button>
             </div>
             <div id="list-compiti" class="space-y-3">
                 <p class="text-slate-400 text-center py-6 text-sm">Caricamento in corso...</p>
-            </div>
-        </section>
-
-        <!-- SEZIONE ORARIO SCOLASTICO -->
-        <section id="orario" class="tab-content space-y-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 space-y-4">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-900">Orario Scolastico Settimanale</h2>
-                        <p class="text-xs text-slate-500">Quadro delle lezioni per preparare lo zaino</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Lunedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5">
-                            <li>• Italiano</li>
-                            <li>• Matematica</li>
-                            <li>• Inglese</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Martedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5">
-                            <li>• Storia / Geografia</li>
-                            <li>• Italiano</li>
-                            <li>• Arte e Immagine</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Mercoledì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5">
-                            <li>• Matematica</li>
-                            <li>• Scienze</li>
-                            <li>• Educazione Motoria</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Giovedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5">
-                            <li>• Italiano</li>
-                            <li>• Inglese</li>
-                            <li>• Religione / Alternativa</li>
-                        </ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Venerdì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5">
-                            <li>• Matematica</li>
-                            <li>• Storia / Geografia</li>
-                            <li>• Musica</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -192,48 +124,6 @@
             <div id="list-avvisi" class="space-y-3"></div>
         </section>
 
-        <!-- SEZIONE GALLERIA FOTO -->
-        <section id="galleria" class="tab-content space-y-4">
-            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-900">Galleria Ricordi & Gite</h2>
-                    <p class="text-xs text-slate-500">Foto e album dei momenti speciali della 3E</p>
-                </div>
-                <button onclick="openAddModal('galleria')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
-                    <i class="fa-solid fa-plus"></i><span>Aggiungi Foto/Album</span>
-                </button>
-            </div>
-            <div id="list-galleria" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-        </section>
-
-        <!-- SEZIONE SONDAGGI -->
-        <section id="sondaggi" class="tab-content space-y-4">
-            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-900">Sondaggi & Adesioni</h2>
-                    <p class="text-xs text-slate-500">Raccolta preferenze e risposte rapide</p>
-                </div>
-                <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
-                    <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
-                </button>
-            </div>
-            <div id="list-sondaggi" class="space-y-3"></div>
-        </section>
-
-        <!-- SEZIONE LINK UTILI -->
-        <section id="linkutili" class="tab-content space-y-4">
-            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-900">Link Utili della Scuola</h2>
-                    <p class="text-xs text-slate-500">Accesso rapido a portali e modulistica</p>
-                </div>
-                <button onclick="openAddModal('linkutili')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
-                    <i class="fa-solid fa-plus"></i><span>Aggiungi Link</span>
-                </button>
-            </div>
-            <div id="list-linkutili" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-        </section>
-
         <!-- SEZIONE COMPLEANNI -->
         <section id="compleanni" class="tab-content space-y-4">
             <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
@@ -246,6 +136,20 @@
                 </button>
             </div>
             <div id="list-compleanni" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- SEZIONE PROMEMORIA -->
+        <section id="promemoria" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Promemoria e Scadenze</h2>
+                    <p class="text-xs text-slate-500">Eventi e cose da ricordare</p>
+                </div>
+                <button onclick="openAddModal('promemoria')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Promemoria</span>
+                </button>
+            </div>
+            <div id="list-promemoria" class="space-y-3"></div>
         </section>
 
     </main>
@@ -282,19 +186,8 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1">Titolo / Argomento</label>
                     <input type="text" id="inputTitle" required placeholder="Es. Compiti di Matematica o Uscita Didattica" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div id="materiaWrapper">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Materia</label>
-                    <select id="inputMateria" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="Italiano">Italiano</option>
-                        <option value="Matematica">Matematica</option>
-                        <option value="Inglese">Inglese</option>
-                        <option value="Storia/Geografia">Storia / Geografia</option>
-                        <option value="Scienze">Scienze</option>
-                        <option value="Altro">Altro</option>
-                    </select>
-                </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Data e Ora Scadenza / Riferimento (Opzionale)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Data e Ora Scadenza / Riferimento</label>
                     <input type="datetime-local" id="inputDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
@@ -302,7 +195,7 @@
                     <textarea id="inputDetails" rows="3" placeholder="Scrivi qui i dettagli..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Web / Foto / Album (Google Drive, YouTube, ecc.)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Link File / Foto / Video (Google Drive, YouTube, ecc.)</label>
                     <input type="url" id="inputFileUrl" placeholder="https://..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl text-sm font-semibold shadow-md shadow-indigo-200 transition">Pubblica</button>
@@ -322,7 +215,7 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, fondo: {}, avvisi: {}, galleria: {}, sondaggi: {}, linkutili: {}, compleanni: {} };
+        let dbData = { compiti: {}, fondo: {}, avvisi: {}, compleanni: {}, promemoria: {} };
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -402,14 +295,6 @@
             document.getElementById('currentSection').value = section;
             document.getElementById('modalTitle').innerText = "Aggiungi a " + section.toUpperCase();
             document.getElementById('dataForm').reset();
-            
-            const materiaWrapper = document.getElementById('materiaWrapper');
-            if (section === 'compiti') {
-                materiaWrapper.classList.remove('hidden');
-            } else {
-                materiaWrapper.classList.add('hidden');
-            }
-
             document.getElementById('dataModal').classList.remove('hidden');
         }
 
@@ -420,3 +305,159 @@
         function saveData(e) {
             e.preventDefault();
             const section = document.getElementById('currentSection').value;
+            const title = document.getElementById('inputTitle').value;
+            const date = document.getElementById('inputDate').value;
+            const details = document.getElementById('inputDetails').value;
+            const fileUrl = document.getElementById('inputFileUrl').value;
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerText = "Salvataggio in corso...";
+            saveBtn.disabled = true;
+
+            const { db, ref, set } = window.fbDB;
+            if (!dbData[section]) dbData[section] = {};
+            
+            const newItemId = 'item_' + Date.now();
+            dbData[section][newItemId] = {
+                id: newItemId,
+                title,
+                date,
+                details,
+                fileUrl,
+                createdAt: Date.now()
+            };
+
+            set(ref(db, 'classe3e'), dbData).then(() => {
+                closeAddModal();
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            }).catch(err => {
+                alert('Errore di salvataggio: ' + err.message);
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            });
+        }
+
+        function deleteItem(section, id) {
+            if (confirm("Vuoi davvero eliminare questo elemento?")) {
+                const { db, ref, set } = window.fbDB;
+                delete dbData[section][id];
+                set(ref(db, 'classe3e'), dbData);
+            }
+        }
+
+        function renderAll() {
+            renderSection('compiti', 'list-compiti', item => {
+                const waText = encodeURIComponent(`📚 *Compito Classe 3E*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3">
+                    <div class="space-y-1.5 flex-1">
+                        <h3 class="font-bold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-indigo-600 font-semibold"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-slate-600">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<div class="pt-1"><a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl font-medium transition"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato / File</span></a></div>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-xl transition shadow-sm" title="Condividi su WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                        ${isAdmin ? `<button onclick="deleteItem('compiti', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                    </div>
+                </div>
+            `;});
+
+            renderSection('fondo', 'list-fondo', item => {
+                const waText = encodeURIComponent(`💶 *Fondo Cassa 3E*\n*${item.title}*\n${item.date ? new Date(item.date).toLocaleDateString('it-IT') + '\n' : ''}${item.details ? item.details : ''}`);
+                return `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-center">
+                    <div class="space-y-0.5">
+                        <h3 class="font-bold text-slate-800 text-sm">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-xs text-slate-600 mt-1">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<div class="pt-1"><a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-flex items-center space-x-1 text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg font-medium"><i class="fa-solid fa-paperclip"></i><span>Ricevuta</span></a></div>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2 rounded-xl transition"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        ${isAdmin ? `<button onclick="deleteItem('fondo', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                    </div>
+                </div>
+            `;});
+
+            renderSection('avvisi', 'list-avvisi', item => {
+                const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                return `
+                <div class="bg-amber-50/80 border border-amber-200/80 p-5 rounded-2xl shadow-sm flex justify-between items-start space-x-3">
+                    <div class="space-y-1.5 flex-1">
+                        <h3 class="font-bold text-amber-900 text-base flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-600"></i>${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-amber-700 font-semibold">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-amber-800/90">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<div class="pt-1"><a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-xl font-medium transition"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato</span></a></div>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-white hover:bg-amber-100 text-emerald-600 p-2.5 rounded-xl transition shadow-sm" title="Condividi su WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                        ${isAdmin ? `<button onclick="deleteItem('avvisi', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                    </div>
+                </div>
+            `;});
+
+            renderSection('compleanni', 'list-compleanni', item => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-pink-100 text-pink-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base shadow-inner">
+                            <i class="fa-solid fa-cake-candles"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(item.title)}</h4>
+                            ${item.date ? `<p class="text-xs text-pink-600 font-medium">${item.date}</p>` : ''}
+                            ${item.details ? `<p class="text-xs text-slate-500 mt-0.5">${escapeHtml(item.details)}</p>` : ''}
+                        </div>
+                    </div>
+                    ${isAdmin ? `<button onclick="deleteItem('compleanni', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                </div>
+            `);
+
+            renderSection('promemoria', 'list-promemoria', item => {
+                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3">
+                    <div class="space-y-1.5 flex-1">
+                        <h3 class="font-bold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-indigo-600 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-slate-600">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.fileUrl ? `<div class="pt-1"><a href="${item.fileUrl}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl font-medium"><i class="fa-solid fa-paperclip"></i><span>Allegato</span></a></div>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${isAdmin ? `<button onclick="deleteItem('promemoria', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                    </div>
+                </div>
+            `;});
+        }
+
+        function renderSection(sectionKey, containerId, templateFn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const data = dbData[sectionKey];
+            
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-6 text-sm">Nessun elemento presente.</p>`;
+                return;
+            }
+
+            container.innerHTML = Object.values(data)
+                .sort((a, b) => b.createdAt - a.createdAt)
+                .map(templateFn)
+                .join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        updateAdminUI();
+    </script>
+</body>
+</html>
