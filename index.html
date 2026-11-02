@@ -573,9 +573,39 @@
         let fondoChartInstance = null;
         let previousDataSnapshot = null;
 
-        // Funzione per mostrare notifiche (esclusive Admin)
+        // Funzione per richiedere permessi notifiche native del browser
+        function requestBrowserNotificationPermission() {
+            if ("Notification" in window && Notification.permission === "default" && isAdmin) {
+                Notification.requestPermission();
+            }
+        }
+
+        // Funzione per mostrare notifiche (Banner in-app + Notifica Nativa se app chiusa/in background)
         function showAdminNotification(message, type = 'success') {
-            if (!isAdmin) return; // Mostra la notifica solo se l'utente è admin
+            if (!isAdmin) return; // Solo per Admin
+
+            // 1. Notifica Nativa del Browser (funziona anche ad app chiusa o in background)
+            if ("Notification" in window) {
+                if (Notification.permission === "granted") {
+                    try {
+                        const notifTitle = type === 'success' ? "Classe 3E - Nuovo Contenuto" : "Classe 3E - Avviso Admin";
+                        const notification = new Notification(notifTitle, {
+                            body: message,
+                            icon: "https://cdn-icons-png.flaticon.com/512/3409/3409245.png"
+                        });
+                        notification.onclick = function() {
+                            window.focus();
+                            notification.close();
+                        };
+                    } catch (e) {
+                        console.error("Errore notifica nativa:", e);
+                    }
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+
+            // 2. Banner visivo in-app (se l'utente ha la pagina aperta)
             const container = document.getElementById('adminNotificationContainer');
             if (!container) return;
 
@@ -660,6 +690,7 @@
             if (hash) switchTab(hash);
             initSnakeCanvas();
             checkPlayerSessionUI();
+            if (isAdmin) requestBrowserNotificationPermission();
         });
 
         function checkPlayerSessionUI() {
@@ -906,6 +937,7 @@
                 if (adminLoginForm) adminLoginForm.classList.add('hidden');
                 if (adminLogoutDiv) adminLogoutDiv.classList.remove('hidden');
                 localStorage.setItem('isAdmin_3e', 'true');
+                requestBrowserNotificationPermission();
                 showAdminNotification("Modalità Admin attivata: notifiche abilitate.", "success");
             } else {
                 adminOnlyElements.forEach(el => el.classList.add('hidden'));
