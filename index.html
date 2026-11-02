@@ -161,4 +161,67 @@
         <section id="avvisi" class="tab-content space-y-4">
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
                 <div>
-                    <h2 class="text-xl font-extrab
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Avvisi Importanti</h2>
+                    <p class="text-xs text-slate-500 font-medium">Comunicazioni ufficiali con supporto multi-allegato</p>
+                </div>
+                <button onclick="openAddModal('avvisi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Pubblica Avviso</span>
+                </button>
+            </div>
+            <div id="list-avvisi" class="space-y-3.5"></div>
+        </section>
+
+        <!-- SEZIONE GALLERIA -->
+        <section id="galleria" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Galleria Foto & Video</h2>
+                    <p class="text-xs text-slate-500 font-medium">Ricordi delle gite e dei momenti speciali</p>
+                </div>
+                <button onclick="openAddModal('galleria')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Carica Foto/Video</span>
+                </button>
+            </div>
+            <div id="list-galleria" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- SEZIONE LINK UTILI -->
+        <section id="linkutili" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Link Utili della Scuola</h2>
+                    <p class="text-xs text-slate-500 font-medium">Accesso rapido a portali e modulistica</p>
+                </div>
+                <button onclick="openAddModal('linkutili')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Link</span>
+                </button>
+            </div>
+            <div id="list-linkutili" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+        </section>
+
+        <!-- SEZIONE COMPLEANNI -->
+        <section id="compleanni" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Compleanni Compagni</h2>
+                    <p class="text-xs text-slate-500 font-medium">Festeggiamo insieme i nostri bambini</p>
+                </div>
+                <button onclick="openAddModal('compleanni')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Compleanno</span>
+                </button>
+            </div>
+            <div id="list-compleanni" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+        </section>
+
+        <!-- SEZIONE PROMEMORIA -->
+        <section id="promemoria" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Promemoria e Scadenze</h2>
+                    <p class="text-xs text-slate-500 font-medium">Eventi e cose da ricordare</p>
+                </div>
+                <button onclick="openAddModal('promemoria')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Promemoria</span>
+                </button>
+            </div>
+            <div id="list-promemoria" class="space-y-3.5
