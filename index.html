@@ -113,7 +113,7 @@
                     </div>
                 </div>
                 <div class="hidden sm:block">
-                    <span class="bg-indigo-500/30 border border-indigo-400/40 text-indigo-100 text-xs font-bold px-3.5 py-1.5 rounded-xl">Aggiornato in tempo reale</span>
+                    <span class="bg-indigo-500/30 border border-indigo-400/40 text-indigo-100 text-xs font-bold px-3.5 py-1.5 rounded-xl">Auto-eliminazione dopo 12h dalla scadenza</span>
                 </div>
             </div>
 
@@ -435,10 +435,35 @@
                 const val = snapshot.val();
                 if (val) {
                     dbData = { ...dbData, ...val };
+                    checkAndCleanExpiredCompiti();
                 }
                 renderAll();
             });
         });
+
+        // Funzione per eliminare automaticamente i compiti 12 ore dopo la scadenza
+        function checkAndCleanExpiredCompiti() {
+            if (!dbData.compiti) return;
+            const now = Date.now();
+            let hasChanges = false;
+
+            for (const id in dbData.compiti) {
+                const compito = dbData.compiti[id];
+                if (compito.date) {
+                    const expiryTime = new Date(compito.date).getTime();
+                    const deleteTime = expiryTime + (12 * 60 * 60 * 1000); // 12 ore dopo la scadenza
+                    if (now >= deleteTime) {
+                        delete dbData.compiti[id];
+                        hasChanges = true;
+                    }
+                }
+            }
+
+            if (hasChanges) {
+                const { db, ref, set } = window.fbDB;
+                set(ref(db, 'classe3e'), dbData);
+            }
+        }
 
         function updateAdminUI() {
             const adminOnlyElements = document.querySelectorAll('.admin-only');
@@ -820,6 +845,8 @@
         }
 
         setInterval(() => {
+            checkAndCleanExpiredCompiti();
+
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
             if (countdownData.length === 0) return;
             const latestCD = countdownData.sort((a, b) => b.createdAt - a.createdAt)[0];
@@ -850,7 +877,7 @@
                 if (totalCompiti === 0) {
                     summaryTextEl.innerText = "Nessun compito registrato al momento.";
                 } else {
-                    summaryTextEl.innerText = `Ci sono ${totalCompiti} attività/compiti registrati nel diario di classe.`;
+                    summaryTextEl.innerText = `Ci sono ${totalCompiti} attività/compiti attivi nel diario di classe.`;
                 }
             }
 
@@ -1117,7 +1144,7 @@
                 </div>`;
             });
 
-            // Avvisi (Con Badge "NUOVO" se inserito nelle ultime 24 ore)
+            // Avvisi
             renderCustomSection('avvisi', 'list-avvisi', item => {
                 const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}\n${item.fileUrl ? 'Allegati: ' + item.fileUrl : ''}`);
                 const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs ml-2 animate-pulse">Nuovo</span>` : '';
