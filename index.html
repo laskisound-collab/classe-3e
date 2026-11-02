@@ -182,7 +182,7 @@
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sondaggi e Votazioni</h2>
-                    <p class="text-xs text-slate-500 font-medium">Inserisci il nome del bambino e vota l'opzione desiderata</p>
+                    <p class="text-xs text-slate-500 font-medium">Inserisci il nome del bambino, confermalo e vota l'opzione desiderata</p>
                 </div>
                 <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
@@ -365,6 +365,7 @@
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
         let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
+        let activeVoterSession = {}; // Stato locale per validare il nome del bambino per ciascun sondaggio
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -581,13 +582,30 @@
             });
         }
 
+        function validateVoter(pollId) {
+            const inputEl = document.getElementById(`voterInput_${pollId}`);
+            const nameValue = inputEl ? inputEl.value.trim() : '';
+
+            if (!nameValue) {
+                alert('Inserisci prima il nome del bambino/a!');
+                if (inputEl) inputEl.focus();
+                return;
+            }
+
+            activeVoterSession[pollId] = nameValue;
+            renderAll();
+        }
+
+        function resetVoter(pollId) {
+            delete activeVoterSession[pollId];
+            renderAll();
+        }
+
         function votePoll(pollId, optionName) {
-            const childNameInput = document.getElementById(`voter_${pollId}`);
-            const childName = childNameInput ? childNameInput.value.trim() : '';
+            const childName = activeVoterSession[pollId];
 
             if (!childName) {
-                alert('Inserisci prima il nome del bambino/a nel campo in alto!');
-                if (childNameInput) childNameInput.focus();
+                alert('Prima di votare devi inserire e confermare il nome del bambino/a!');
                 return;
             }
 
@@ -608,7 +626,6 @@
             poll.votes[optionName].push(childName);
 
             set(ref(db, 'classe3e'), dbData).then(() => {
-                childNameInput.value = '';
                 renderAll();
             }).catch(err => {
                 alert('Errore nella votazione: ' + err.message);
@@ -838,7 +855,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Pulsanti visivi e cliccabili per ogni opzione)
+            // Sondaggi Interattivi (Con validazione nome preventiva)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -846,18 +863,28 @@
                     if (Array.isArray(votesMap[opt])) totalVotes += votesMap[opt].length;
                 }
                 
+                const currentVoter = activeVoterSession[item.id] || '';
+                
                 let optionsHtml = '';
                 for (const [optionName, namesList] of Object.entries(votesMap)) {
                     const count = Array.isArray(namesList) ? namesList.length : 0;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    
+                    const voteButtonDisabledClass = !currentVoter ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm';
                     
                     optionsHtml += `
                         <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
-                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName)}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"><i class="fa-solid fa-list mr-1"></i> Elenco (${count})</button>
+                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" 
+                                        class="${voteButtonDisabledClass} text-white px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"
+                                        ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
+                                        <i class="fa-solid fa-check mr-1"></i> Vota qui
+                                    </button>
+                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName)}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap">
+                                        <i class="fa-solid fa-list mr-1"></i> Elenco (${count})
+                                    </button>
                                 </div>
                             </div>
                             <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
@@ -873,6 +900,40 @@
 
                 const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}`);
 
+                let voterSectionHtml = '';
+                if (!currentVoter) {
+                    voterSectionHtml = `
+                        <div class="bg-indigo-50/80 p-3.5 rounded-2xl border border-indigo-200 flex flex-col sm:flex-row items-center gap-2.5">
+                            <div class="flex items-center space-x-2.5 w-full">
+                                <div class="bg-indigo-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-child"></i>
+                                </div>
+                                <input type="text" id="voterInput_${item.id}" placeholder="Nome e cognome del bambino/a..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                            </div>
+                            <button onclick="validateVoter('${item.id}')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap">
+                                <i class="fa-solid fa-check-to-slot mr-1"></i> Conferma Nome
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    voterSectionHtml = `
+                        <div class="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 flex justify-between items-center">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="bg-emerald-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="text-xs">
+                                    <span class="text-slate-500 block font-medium">Stai votando per:</span>
+                                    <span class="font-extrabold text-emerald-900 text-sm">${escapeHtml(currentVoter)}</span>
+                                </div>
+                            </div>
+                            <button onclick="resetVoter('${item.id}')" class="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
+                                Cambia nome
+                            </button>
+                        </div>
+                    `;
+                }
+
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-4 transition hover:shadow-md">
                     <div class="flex justify-between items-start">
@@ -887,13 +948,7 @@
                         </div>
                     </div>
                     
-                    <!-- Campo inserimento nome bambino -->
-                    <div class="bg-indigo-50/80 p-3.5 rounded-2xl border border-indigo-200 flex items-center space-x-2.5">
-                        <div class="bg-indigo-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                            <i class="fa-solid fa-child"></i>
-                        </div>
-                        <input type="text" id="voter_${item.id}" placeholder="Scrivi qui il nome del bambino/a prima di votare..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                    </div>
+                    ${voterSectionHtml}
 
                     <div class="space-y-2.5 pt-1">
                         ${optionsHtml}
