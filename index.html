@@ -325,12 +325,12 @@
                     <input type="datetime-local" id="inputDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                 </div>
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelDetails">Dettagli / Testo aggiuntivo</label>
-                    <textarea id="inputDetails" rows="3" placeholder="Scrivi qui i dettagli..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"></textarea>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelDetails">Dettagli / Opzioni (una per riga)</label>
+                    <textarea id="inputDetails" rows="4" placeholder="Opzione 1&#10;Opzione 2&#10;Opzione 3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegati (più link separati da virgola)</label>
-                    <input type="text" id="inputFileUrl" placeholder="https://link1.com, https://link2.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegati (opzionale)</label>
+                    <input type="text" id="inputFileUrl" placeholder="https://link.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 transition">Pubblica</button>
             </form>
@@ -466,7 +466,13 @@
                 document.getElementById('inputTitle').value = item.title || '';
                 if (section === 'compiti') document.getElementById('inputMateria').value = item.materia || 'Italiano';
                 document.getElementById('inputDate').value = item.date || '';
-                document.getElementById('inputDetails').value = item.details || '';
+                
+                if (section === 'sondaggi' && item.votes) {
+                    document.getElementById('inputDetails').value = Object.keys(item.votes).join('\n');
+                } else {
+                    document.getElementById('inputDetails').value = item.details || '';
+                }
+                
                 document.getElementById('inputFileUrl').value = item.fileUrl || '';
             } else {
                 modalTitle.innerText = "Aggiungi a " + section.toUpperCase();
@@ -507,7 +513,7 @@
                 materiaWrapper.classList.add('hidden');
                 dateWrapper.classList.add('hidden');
                 labelTitle.innerText = "Domanda del Sondaggio (Es. Dove facciamo la gita?)";
-                labelDetails.innerText = "Opzioni di voto (inseriscine una per riga)";
+                labelDetails.innerText = "Opzioni di voto (inserisci una opzione per riga)";
                 labelFileUrl.innerText = "Link o note (opzionale)";
             } else if (section === 'compleanni') {
                 materiaWrapper.classList.add('hidden');
@@ -561,14 +567,16 @@
             };
 
             if (section === 'sondaggi') {
-                if (!itemId || !dbData[section][itemId].votes) {
-                    const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-                    let votes = {};
-                    options.forEach(opt => { votes[opt] = []; });
-                    itemData.votes = votes;
-                } else {
-                    itemData.votes = dbData[section][itemId].votes;
-                }
+                const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                let votes = {};
+                
+                // Mantieni i voti esistenti se si sta modificando e l'opzione esiste già
+                const existingVotes = (itemId && dbData[section][itemId] && dbData[section][itemId].votes) ? dbData[section][itemId].votes : {};
+                
+                options.forEach(opt => {
+                    votes[opt] = existingVotes[opt] || [];
+                });
+                itemData.votes = votes;
             }
 
             dbData[section][idToUse] = itemData;
@@ -595,7 +603,7 @@
             }
 
             activeVoterSession[pollId] = nameValue;
-            renderAll();
+            renderAll(); // Ridisegna immediatamente la schermata sbloccando le opzioni
         }
 
         function resetVoter(pollId) {
