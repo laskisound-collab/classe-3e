@@ -530,8 +530,8 @@
                     <textarea id="inputDetails" rows="4" placeholder="Opzione 1&#10;Opzione 2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegato / Link Registro (opzionale)</label>
-                    <input type="text" id="inputFileUrl" placeholder="https://link-registro-o-file.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium">
+                    <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Link Registro (puoi metterene più di uno separati da spazio o virgola)</label>
+                    <input type="text" id="inputFileUrl" placeholder="https://link1.com https://link2.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 transition">Pubblica</button>
             </form>
@@ -553,7 +553,7 @@
         </div>
     </div>
 
-    <!-- Script Logica App, Firebase, Contatore Visite e Condivisione Con Link Registro -->
+    <!-- Script Logica App -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -569,13 +569,10 @@
         let activeVoterSession = {}; 
         let fondoChartInstance = null;
 
-        // --- Logica Gioco Snake con Classifica Firebase ---
         let snakeCanvas, snakeCtx;
         let snake = [];
         let food = { x: 0, y: 0 };
-        let dx = 10;
-        let dy = 0;
-        let score = 0;
+        let dx = 10, dy = 0, score = 0;
         let snakeInterval = null;
         let gameRunning = false;
         let currentPlayer = localStorage.getItem('snakePlayerName_3e') || '';
@@ -584,7 +581,6 @@
             const { db, ref, onValue, runTransaction } = window.fbDB;
             const dataRef = ref(db, 'classe3e');
             
-            // Incrementa contatore visite (una volta per sessione browser)
             const visitedKey = sessionStorage.getItem('visited_3e');
             if (!visitedKey) {
                 const visitsRef = ref(db, 'classe3e/stats/visits');
@@ -617,7 +613,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
             if (hash) switchTab(hash);
-            
             initSnakeCanvas();
             checkPlayerSessionUI();
         });
@@ -681,9 +676,7 @@
             if (!currentPlayer) return;
             if (snakeInterval) clearInterval(snakeInterval);
             snake = [{ x: 150, y: 150 }, { x: 140, y: 150 }, { x: 130, y: 150 }];
-            score = 0;
-            dx = 10;
-            dy = 0;
+            score = 0; dx = 10; dy = 0;
             document.getElementById('snakeScore').innerText = score;
             document.getElementById('snakeStatusText').innerText = "In gioco! Buon divertimento!";
             document.getElementById('snakeShareContainer').innerHTML = '';
@@ -1158,7 +1151,7 @@
             if (!fileUrlStr) return '';
             const urls = fileUrlStr.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
             if (urls.length === 0) return `<div class="pt-2"><a href="${escapeHtml(fileUrlStr)}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato / Link Registro</span></a></div>`;
-            return `<div class="pt-2 flex flex-wrap gap-2">` + urls.map((url, index) => `<a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>${urls.length > 1 ? 'Link ' + (index + 1) : 'Apri Link / Registro'}</span></a>`).join('') + `</div>`;
+            return `<div class="pt-2 flex flex-wrap gap-2">` + urls.map((url, index) => `<a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-paperclip"></i><span>Allegato ${index + 1}</span></a>`).join('') + `</div>`;
         }
 
         function getAdminButtons(section, id) {
@@ -1233,7 +1226,7 @@
                 }
             }
 
-            // Compiti (Con inclusione link web/registro nella condivisione WhatsApp)
+            // Compiti (Con Allegato 1, 2, 3... in WhatsApp)
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
                 
@@ -1243,7 +1236,19 @@
                 let waText = `📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n`;
                 if (item.date) waText += `⏰ Scadenza: ${new Date(item.date).toLocaleString('it-IT')}\n`;
                 if (item.details) waText += `${item.details}\n`;
-                if (item.fileUrl) waText += `🔗 *Link Registro / Approfondimento:* ${item.fileUrl}\n`;
+                
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length === 1) {
+                        waText += `🔗 *Link Registro / Allegato:* ${urls[0]}\n`;
+                    } else if (urls.length > 1) {
+                        waText += `🔗 *Allegati utili:*\n`;
+                        urls.forEach((u, idx) => {
+                            waText += `📎 Allegato ${idx + 1}: ${u}\n`;
+                        });
+                    }
+                }
+                
                 waText += `\n📲 *Verifica sulla Bacheca di Classe:* ${appUrl}`;
                 
                 const encodedWA = encodeURIComponent(waText.trim());
@@ -1527,7 +1532,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Condividi"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('promemoria', item.id)}
                     </div>
                 </div>`;
