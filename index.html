@@ -174,7 +174,7 @@
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-utensils"></i></span>
-                        Menu Mensa Scolastica (Ciclo Automatico)
+                        Menu Mensa Scolastica (Normale e Leggero)
                     </h2>
                     <p class="text-xs text-slate-500 font-medium mt-0.5">Gestione automatica a rotazione delle settimane di mensa</p>
                 </div>
@@ -183,16 +183,23 @@
                 </button>
             </div>
 
-            <!-- Box Dinamico Ciclo Automatico -->
-            <div id="todayMenuWidget" class="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/30 space-y-3">
+            <!-- Box Dinamico Ciclo Automatico (Normale + Leggero) -->
+            <div id="todayMenuWidget" class="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/30 space-y-4">
                 <div class="flex items-center justify-between">
                     <span id="menuModeBadge" class="bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-solid fa-utensils"></i> Menu del Giorno (Ciclo Automatico)
                     </span>
                     <span id="todayDateBadge" class="text-xs text-emerald-200 font-bold"></span>
                 </div>
-                <div id="todayMenuContent" class="text-sm font-medium text-emerald-50 leading-relaxed">
-                    Caricamento ciclo menu...
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-500/20 space-y-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-900/50 px-2.5 py-1 rounded-lg border border-emerald-500/30">Menu Normale</span>
+                        <div id="todayMenuContent" class="text-sm font-medium text-emerald-50 leading-relaxed">Caricamento menu...</div>
+                    </div>
+                    <div class="bg-teal-950/60 p-4 rounded-2xl border border-teal-500/20 space-y-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-teal-300 bg-teal-900/50 px-2.5 py-1 rounded-lg border border-teal-500/30">Menu Leggero</span>
+                        <div id="todayLightMenuContent" class="text-sm font-medium text-teal-50 leading-relaxed">Caricamento menu leggero...</div>
+                    </div>
                 </div>
             </div>
 
@@ -1148,6 +1155,7 @@
                     <i class="fa-brands fa-whatsapp text-base"></i><span>Condividi su WhatsApp</span>
                 </a>
             `;
+            document.getElementById('votersModal').classList.add('hidden'); // Fix toggle
             document.getElementById('votersModal').classList.remove('hidden');
         }
 
@@ -1201,12 +1209,13 @@
             if (homeCDHtml) homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
         }, 1000);
 
-        // --- AUTOMAZIONE CICLO MENSA (Ruota in automatico ogni settimana) ---
+        // --- AUTOMAZIONE CICLO MENSA (Normale e Leggero) ---
         function renderTodayMenu() {
             const todayWidget = document.getElementById('todayMenuContent');
+            const todayLightWidget = document.getElementById('todayLightMenuContent');
             const dateBadge = document.getElementById('todayDateBadge');
             const modeBadge = document.getElementById('menuModeBadge');
-            if (!todayWidget || !dateBadge || !modeBadge) return;
+            if (!todayWidget || !todayLightWidget || !dateBadge || !modeBadge) return;
 
             const now = new Date();
             const dayOfWeek = now.getDay(); // 0 = Dom, 1 = Lun, ..., 6 = Sab
@@ -1215,68 +1224,46 @@
 
             const mensaItems = dbData.mensa ? Object.values(dbData.mensa) : [];
             if (mensaItems.length === 0) {
-                todayWidget.innerHTML = `<span class="text-emerald-200 italic">Nessun menu o ciclo pubblicato al momento.</span>`;
+                todayWidget.innerHTML = `<span class="text-emerald-200 italic">Nessun menu pubblicato.</span>`;
+                todayLightWidget.innerHTML = `<span class="text-teal-200 italic">Nessun menu leggero pubblicato.</span>`;
                 modeBadge.innerHTML = `<i class="fa-solid fa-utensils"></i> Menu Mensa`;
                 return;
             }
 
-            const sortedMensa = mensaItems.sort((a, b) => a.createdAt - b.createdAt);
-            const totalCicli = sortedMensa.length;
-            
+            // Separa i menu normali da quelli leggeri in base al titolo
+            const normalMenus = mensaItems.filter(i => !i.title.toLowerCase().includes('leggero')).sort((a, b) => a.createdAt - b.createdAt);
+            const lightMenus = mensaItems.filter(i => i.title.toLowerCase().includes('leggero')).sort((a, b) => a.createdAt - b.createdAt);
+
             const startOfYear = new Date(now.getFullYear(), 0, 1);
             const weekNumber = Math.ceil((((now - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
-            const activeIndex = (weekNumber - 1) % totalCicli;
-            const activeMenu = sortedMensa[activeIndex] || sortedMensa[0];
 
-            const details = activeMenu.details || '';
-            const righe = details.split('\n').map(r => r.trim()).filter(r => r.length > 0);
-
-            // Se è Sabato o Domenica, mostra già l'anteprima della settimana successiva del ciclo
-            if (dayOfWeek === 6 || dayOfWeek === 0) {
-                const nextIndex = (activeIndex + 1) % totalCicli;
-                const nextMenu = sortedMensa[nextIndex] || activeMenu;
-                const nextRighe = (nextMenu.details || '').split('\n').map(r => r.trim()).filter(r => r.length > 0);
-
-                modeBadge.innerHTML = `<i class="fa-solid fa-forward"></i> Anteprima Prossima Settimana (Ciclo Automatico)`;
-                todayWidget.innerHTML = `
-                    <strong class="text-white text-base block mb-2">${escapeHtml(nextMenu.title)}</strong>
-                    <div class="bg-emerald-950/60 p-3.5 rounded-2xl border border-emerald-500/20 text-emerald-100 space-y-1">
-                        <p class="text-xs text-amber-300 font-bold mb-1"><i class="fa-solid fa-circle-info"></i> È weekend: ecco il menu per la ripresa:</p>
-                        ${nextRighe.slice(0, 5).map(r => `<div>• ${escapeHtml(r)}</div>`).join('')}
-                    </div>
-                `;
-                return;
+            // Estrai menu normale attivo
+            let activeNormalText = "Nessun menu normale trovato.";
+            if (normalMenus.length > 0) {
+                const activeNormal = normalMenus[(weekNumber - 1) % normalMenus.length];
+                const righeNormal = (activeNormal.details || '').split('\n').map(r => r.trim()).filter(r => r.length > 0);
+                const giorniMap = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+                const oggiNome = giorniMap[dayOfWeek];
+                
+                let trovato = righeNormal.find(r => r.toLowerCase().includes(oggiNome));
+                activeNormalText = trovato ? `<strong class="text-white">${activeNormal.title}</strong><br>${trovato}` : righeNormal.slice(0, 5).join('<br>');
             }
 
-            // Giorni feriali (Lunedì - Venerdì)
-            const giorniMap = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-            const oggiNome = giorniMap[dayOfWeek];
-            let piattoTrovato = '';
-
-            for (const riga of righe) {
-                if (riga.toLowerCase().includes(oggiNome)) {
-                    piattoTrovato = riga;
-                    break;
-                }
+            // Estrai menu leggero attivo
+            let activeLightText = "Nessun menu leggero trovato.";
+            if (lightMenus.length > 0) {
+                const activeLight = lightMenus[(weekNumber - 1) % lightMenus.length];
+                const righeLight = (activeLight.details || '').split('\n').map(r => r.trim()).filter(r => r.length > 0);
+                const giorniMap = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+                const oggiNome = giorniMap[dayOfWeek];
+                
+                let trovatoLight = righeLight.find(r => r.toLowerCase().includes(oggiNome));
+                activeLightText = trovatoLight ? `<strong class="text-white">${activeLight.title}</strong><br>${trovatoLight}` : righeLight.slice(0, 5).join('<br>');
             }
 
-            modeBadge.innerHTML = `<i class="fa-solid fa-utensils"></i> Menu del Giorno (${oggiNome.toUpperCase()}) - ${activeMenu.title}`;
-            if (piattoTrovato) {
-                todayWidget.innerHTML = `
-                    <strong class="text-white text-base block mb-1">${escapeHtml(activeMenu.title)}</strong>
-                    <div class="bg-emerald-950/60 p-3.5 rounded-2xl border border-emerald-500/20 text-emerald-100 text-sm font-bold">
-                        ${escapeHtml(piattoTrovato)}
-                    </div>
-                `;
-            } else {
-                todayWidget.innerHTML = `
-                    <strong class="text-white text-base block mb-1">${escapeHtml(activeMenu.title)}</strong>
-                    <p class="text-xs text-emerald-200 mt-1">Menu attivo della settimana:</p>
-                    <div class="bg-emerald-950/60 p-3 rounded-2xl border border-emerald-500/20 text-xs text-emerald-100 space-y-1 mt-2">
-                        ${righe.slice(0, 5).map(r => `<div>• ${escapeHtml(r)}</div>`).join('')}
-                    </div>
-                `;
-            }
+            modeBadge.innerHTML = `<i class="fa-solid fa-utensils"></i> Menu del Giorno (Settimana ${((weekNumber - 1) % 4) + 1})`;
+            todayWidget.innerHTML = activeNormalText;
+            todayLightWidget.innerHTML = activeLightText;
         }
 
         function renderAll() {
@@ -1377,7 +1364,7 @@
                 </div>
             `);
 
-            // Menu Mensa (Elenco completo cicli pubblicati)
+            // Menu Mensa (Elenco completo)
             renderCustomSection('mensa', 'list-mensa', item => {
                 let waText = `🍽️ *Menu Mensa 3E (${item.title})*\n${item.details ? item.details : ''}\n`;
                 if (item.fileUrl) {
