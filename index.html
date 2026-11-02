@@ -280,51 +280,78 @@
             </div>
         </section>
 
-        <!-- SEZIONE SNAKE 3E (NUOVO MINIGIOCO) -->
+        <!-- SEZIONE SNAKE 3E CON CLASSIFICA UFFICIALE -->
         <section id="snake" class="tab-content space-y-4">
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-gamepad"></i></span>
-                        Snake 3E - Area Relax
+                        Snake 3E - Hall of Fame & Classifica
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Il classico gioco del serpente per rilassarsi tra una circolare e l'altra</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-2xl text-xs font-bold text-indigo-900">
-                        Record: <span id="snakeHighScore" class="text-emerald-600 text-sm font-black">0</span>
-                    </div>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Inserisci il tuo nome, gioca e scala la classifica ufficiale della classe!</p>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 rounded-3xl shadow-2xl border border-white/10 flex flex-col items-center justify-center relative overflow-hidden">
-                <div class="flex justify-between w-full max-w-[360px] text-xs font-bold text-indigo-200 mb-3 px-1">
-                    <span>Punteggio: <strong id="snakeScore" class="text-emerald-400 text-base">0</strong></span>
-                    <span id="snakeStatusText" class="text-indigo-300 italic">Premi Avvia per giocare</span>
-                </div>
-
-                <!-- Canvas del gioco -->
-                <div class="bg-black/60 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-inner">
-                    <canvas id="snakeCanvas" width="320" height="320" class="rounded-xl block bg-slate-950"></canvas>
-                </div>
-
-                <!-- Controlli e Pulsanti -->
-                <div class="mt-5 flex flex-col items-center space-y-3 w-full max-w-[320px]">
-                    <button id="snakeStartBtn" onclick="startSnakeGame()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-play text-sm"></i><span>Avvia Partita / Riprova</span>
-                    </button>
-
-                    <!-- Pulsanti Direzionali per Smartphone / Tablet -->
-                    <div class="grid grid-cols-3 gap-2 w-full pt-2">
-                        <div></div>
-                        <button onclick="changeSnakeDir('UP')" class="bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-up"></i></button>
-                        <div></div>
-                        <button onclick="changeSnakeDir('LEFT')" class="bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-left"></i></button>
-                        <button onclick="changeSnakeDir('DOWN')" class="bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-down"></i></button>
-                        <button onclick="changeSnakeDir('RIGHT')" class="bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Pannello Gioco -->
+                <div class="md:col-span-2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 rounded-3xl shadow-2xl border border-white/10 flex flex-col items-center justify-center relative overflow-hidden">
+                    
+                    <!-- Input Nome Giocatore -->
+                    <div id="snakePlayerBox" class="w-full max-w-[320px] mb-4 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 space-y-2">
+                        <label class="block text-[11px] font-bold text-indigo-200">Il tuo nome o del genitore/bambino:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="snakePlayerName" placeholder="Es. Mamma Giulia" class="w-full bg-slate-900 border border-white/20 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                            <button onclick="confirmSnakePlayer()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md whitespace-nowrap">Salva</button>
+                        </div>
+                    </div>
+                    <div id="snakeActivePlayerDisplay" class="hidden w-full max-w-[320px] mb-3 bg-emerald-500/20 border border-emerald-500/40 p-2.5 rounded-xl text-xs text-emerald-300 font-bold flex justify-between items-center">
+                        <span>Giocatore: <strong id="snakeCurrentPlayerName" class="text-white"></strong></span>
+                        <button onclick="changeSnakePlayer()" class="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg text-white">Cambia</button>
                     </div>
 
-                    <div id="snakeShareContainer" class="w-full pt-2"></div>
+                    <div class="flex justify-between w-full max-w-[320px] text-xs font-bold text-indigo-200 mb-3 px-1">
+                        <span>Punteggio: <strong id="snakeScore" class="text-emerald-400 text-base">0</strong></span>
+                        <span id="snakeStatusText" class="text-indigo-300 italic">Inserisci il nome per iniziare</span>
+                    </div>
+
+                    <!-- Canvas del gioco -->
+                    <div class="bg-black/60 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-inner">
+                        <canvas id="snakeCanvas" width="300" height="300" class="rounded-xl block bg-slate-950"></canvas>
+                    </div>
+
+                    <!-- Controlli -->
+                    <div class="mt-4 flex flex-col items-center space-y-3 w-full max-w-[320px]">
+                        <button id="snakeStartBtn" onclick="startSnakeGame()" disabled class="w-full bg-slate-700 text-slate-400 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center space-x-2 cursor-not-allowed">
+                            <i class="fa-solid fa-play text-sm"></i><span>Avvia Partita</span>
+                        </button>
+
+                        <div class="grid grid-cols-3 gap-2 w-full pt-1">
+                            <div></div>
+                            <button onclick="changeSnakeDir('UP')" class="bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-up"></i></button>
+                            <div></div>
+                            <button onclick="changeSnakeDir('LEFT')" class="bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button onclick="changeSnakeDir('DOWN')" class="bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button onclick="changeSnakeDir('RIGHT')" class="bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold transition flex items-center justify-center border border-white/10 active:bg-emerald-600"><i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                        <div id="snakeShareContainer" class="w-full pt-1"></div>
+                    </div>
+                </div>
+
+                <!-- Pannello Classifica Ufficiale -->
+                <div class="md:col-span-1 bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="bg-amber-100 text-amber-700 p-2 rounded-xl"><i class="fa-solid fa-trophy text-sm"></i></div>
+                            <h3 class="font-black text-slate-900 text-base">Classifica 3E</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium mb-4">I migliori punteggi registrati in classe:</p>
+                        <div id="snakeLeaderboardList" class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                            <p class="text-xs text-slate-400 italic text-center py-6">Caricamento classifica...</p>
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 text-center">
+                        <span class="text-[10px] text-slate-400 font-semibold">Aggiornato in tempo reale su Firebase</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -521,7 +548,7 @@
         </div>
     </div>
 
-    <!-- Script Logica App, Firebase, Ruota, Grafico, Countdown & Snake Game -->
+    <!-- Script Logica App, Firebase, Ruota, Grafico, Countdown & Snake con Classifica -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -533,20 +560,20 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
+        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {} };
         let activeVoterSession = {}; 
         let fondoChartInstance = null;
 
-        // --- Logica Gioco Snake ---
+        // --- Logica Gioco Snake con Classifica Firebase ---
         let snakeCanvas, snakeCtx;
         let snake = [];
         let food = { x: 0, y: 0 };
         let dx = 10;
         let dy = 0;
         let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore_3e') || 0;
         let snakeInterval = null;
         let gameRunning = false;
+        let currentPlayer = localStorage.getItem('snakePlayerName_3e') || '';
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -559,17 +586,58 @@
                     checkAndCleanExpiredCompiti();
                 }
                 renderAll();
+                renderSnakeLeaderboard();
             });
         });
 
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                switchTab(hash);
-            }
-            document.getElementById('snakeHighScore').innerText = highScore;
+            if (hash) switchTab(hash);
+            
             initSnakeCanvas();
+            checkPlayerSessionUI();
         });
+
+        function checkPlayerSessionUI() {
+            const playerBox = document.getElementById('snakePlayerBox');
+            const activeDisplay = document.getElementById('snakeActivePlayerDisplay');
+            const startBtn = document.getElementById('snakeStartBtn');
+
+            if (currentPlayer) {
+                if (playerBox) playerBox.classList.add('hidden');
+                if (activeDisplay) activeDisplay.classList.remove('hidden');
+                document.getElementById('snakeCurrentPlayerName').innerText = currentPlayer;
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2 cursor-pointer";
+                }
+                document.getElementById('snakeStatusText').innerText = "Pronto a giocare, " + currentPlayer + "!";
+            } else {
+                if (playerBox) playerBox.classList.remove('hidden');
+                if (activeDisplay) activeDisplay.classList.add('hidden');
+                if (startBtn) {
+                    startBtn.disabled = true;
+                    startBtn.className = "w-full bg-slate-700 text-slate-400 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center space-x-2 cursor-not-allowed";
+                }
+            }
+        }
+
+        function confirmSnakePlayer() {
+            const inputVal = document.getElementById('snakePlayerName').value.trim();
+            if (!inputVal) {
+                alert('Inserisci il nome prima di iniziare!');
+                return;
+            }
+            currentPlayer = inputVal;
+            localStorage.setItem('snakePlayerName_3e', currentPlayer);
+            checkPlayerSessionUI();
+        }
+
+        function changeSnakePlayer() {
+            currentPlayer = '';
+            localStorage.removeItem('snakePlayerName_3e');
+            checkPlayerSessionUI();
+        }
 
         function initSnakeCanvas() {
             snakeCanvas = document.getElementById('snakeCanvas');
@@ -583,17 +651,18 @@
             snakeCtx.fillStyle = '#020617';
             snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
             snakeCtx.fillStyle = '#10b981';
-            snakeCtx.font = 'bold 14px sans-serif';
+            snakeCtx.font = 'bold 13px sans-serif';
             snakeCtx.textAlign = 'center';
-            snakeCtx.fillText("Premi 'Avvia Partita' per iniziare", snakeCanvas.width / 2, snakeCanvas.height / 2);
+            snakeCtx.fillText("Inserisci il nome e clicca Avvia", snakeCanvas.width / 2, snakeCanvas.height / 2);
         }
 
         function startSnakeGame() {
+            if (!currentPlayer) return;
             if (snakeInterval) clearInterval(snakeInterval);
             snake = [
-                { x: 160, y: 160 },
-                { x: 150, y: 160 },
-                { x: 140, y: 160 }
+                { x: 150, y: 150 },
+                { x: 140, y: 150 },
+                { x: 130, y: 150 }
             ];
             score = 0;
             dx = 10;
@@ -610,16 +679,13 @@
             if (hasGameEnded()) {
                 gameRunning = false;
                 clearInterval(snakeInterval);
-                document.getElementById('snakeStatusText').innerText = "Game Over! Punteggio finale: " + score;
+                document.getElementById('snakeStatusText').innerText = "Game Over! Punteggio: " + score;
                 
-                if (score > highScore) {
-                    highScore = score;
-                    localStorage.setItem('snakeHighScore_3e', highScore);
-                    document.getElementById('snakeHighScore').innerText = highScore;
-                }
+                // Salva punteggio su Firebase
+                saveSnakeScoreToFirebase(currentPlayer, score);
 
                 const appUrl = window.location.href.split('#')[0] + '#snake';
-                const waText = encodeURIComponent(`🎮 *Record Snake 3E*\nHo totalizzato ${score} punti nel mini-gioco della bacheca di classe!\n\n🔗 *Vieni a battermi qui:* ${appUrl}`);
+                const waText = encodeURIComponent(`🎮 *Record Snake 3E*\n${currentPlayer} ha totalizzato ${score} punti nella bacheca di classe!\n\n🔗 *Vieni a battere il record qui:* ${appUrl}`);
                 
                 document.getElementById('snakeShareContainer').innerHTML = `
                     <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md">
@@ -633,6 +699,63 @@
             drawFood();
             moveSnake();
             drawSnake();
+        }
+
+        function saveSnakeScoreToFirebase(name, finalScore) {
+            const { db, ref, set } = window.fbDB;
+            if (!dbData.snakeScores) dbData.snakeScores = {};
+
+            // Se il giocatore ha già un punteggio, aggiornalo solo se il nuovo è più alto
+            let existingUserKey = null;
+            for (const key in dbData.snakeScores) {
+                if (dbData.snakeScores[key].name.toLowerCase() === name.toLowerCase()) {
+                    existingUserKey = key;
+                    break;
+                }
+            }
+
+            if (existingUserKey) {
+                if (finalScore > dbData.snakeScores[existingUserKey].score) {
+                    dbData.snakeScores[existingUserKey].score = finalScore;
+                    dbData.snakeScores[existingUserKey].date = Date.now();
+                }
+            } else {
+                const newKey = 'player_' + Date.now();
+                dbData.snakeScores[newKey] = { name: name, score: finalScore, date: Date.now() };
+            }
+
+            set(ref(db, 'classe3e'), dbData);
+        }
+
+        function renderSnakeLeaderboard() {
+            const leaderboardEl = document.getElementById('snakeLeaderboardList');
+            if (!leaderboardEl) return;
+
+            const scoresObj = dbData.snakeScores || {};
+            const scoresArr = Object.values(scoresObj).sort((a, b) => b.score - a.score);
+
+            if (scoresArr.length === 0) {
+                leaderboardEl.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-6">Nessun record in classifica. Sii il primo a giocare!</p>`;
+                return;
+            }
+
+            leaderboardEl.innerHTML = scoresArr.map((item, index) => {
+                let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                let iconHtml = `<span class="font-black text-xs text-slate-500 w-5">${index + 1}°</span>`;
+                if (index === 0) { badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 shadow-xs'; iconHtml = `<i class="fa-solid fa-trophy text-amber-500"></i>`; }
+                else if (index === 1) { badgeColor = 'bg-slate-100 text-slate-700 border-slate-300'; iconHtml = `<i class="fa-solid fa-medal text-slate-400"></i>`; }
+                else if (index === 2) { badgeColor = 'bg-amber-900/10 text-amber-900 border-amber-900/20'; iconHtml = `<i class="fa-solid fa-award text-amber-700"></i>`; }
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-2xl border ${badgeColor} text-xs font-bold transition">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-6 flex justify-center">${iconHtml}</div>
+                            <span class="font-black text-slate-900">${escapeHtml(item.name)}</span>
+                        </div>
+                        <span class="font-black text-indigo-600 bg-white px-2.5 py-1 rounded-xl shadow-2xs">${item.score} pt</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         function clearCanvas() {
@@ -654,8 +777,7 @@
         function moveSnake() {
             const head = { x: snake[0].x + dx, y: snake[0].y + dy };
             snake.unshift(head);
-            const hasEatenFood = snake[0].x === food.x && snake[0].y === food.y;
-            if (hasEatenFood) {
+            if (snake[0].x === food.x && snake[0].y === food.y) {
                 score += 10;
                 document.getElementById('snakeScore').innerText = score;
                 createFood();
@@ -672,8 +794,7 @@
             food.x = randomTen(0, snakeCanvas.width - 10);
             food.y = randomTen(0, snakeCanvas.height - 10);
             snake.forEach(part => {
-                const hasEaten = part.x === food.x && part.y === food.y;
-                if (hasEaten) createFood();
+                if (part.x === food.x && part.y === food.y) createFood();
             });
         }
 
@@ -688,11 +809,7 @@
             for (let i = 4; i < snake.length; i++) {
                 if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
             }
-            const hitLeftWall = snake[0].x < 0;
-            const hitRightWall = snake[0].x >= snakeCanvas.width;
-            const hitToptWall = snake[0].y < 0;
-            const hitBottomWall = snake[0].y >= snakeCanvas.height;
-            return hitLeftWall || hitRightWall || hitToptWall || hitBottomWall;
+            return snake[0].x < 0 || snake[0].x >= snakeCanvas.width || snake[0].y < 0 || snake[0].y >= snakeCanvas.height;
         }
 
         function changeSnakeDir(direction) {
@@ -708,7 +825,6 @@
             if (direction === 'RIGHT' && !goingLeft) { dx = 10; dy = 0; }
         }
 
-        // Ascoltatore tastiera per PC
         window.addEventListener('keydown', e => {
             if (!gameRunning) return;
             if (e.key === 'ArrowUp') changeSnakeDir('UP');
@@ -726,8 +842,7 @@
                 const compito = dbData.compiti[id];
                 if (compito.date) {
                     const expiryTime = new Date(compito.date).getTime();
-                    const deleteTime = expiryTime + (12 * 60 * 60 * 1000); 
-                    if (now >= deleteTime) {
+                    if (now >= expiryTime + (12 * 60 * 60 * 1000)) {
                         delete dbData.compiti[id];
                         hasChanges = true;
                     }
@@ -766,8 +881,7 @@
 
         function toggleAdminModal() { document.getElementById('adminModal').classList.toggle('hidden'); }
         function checkAdminPassword() {
-            const pass = document.getElementById('adminPasswordInput').value;
-            if (pass === '3e') {
+            if (document.getElementById('adminPasswordInput').value === '3e') {
                 isAdmin = true;
                 updateAdminUI();
                 toggleAdminModal();
@@ -803,7 +917,7 @@
             const tasks = tasksRaw.split('\n').map(t => t.trim()).filter(t => t.length > 0);
 
             if (names.length === 0 || tasks.length === 0) {
-                alert('Inserisci almeno un nome e un compito/mansione!');
+                alert('Inserisci almeno un nome e un compito!');
                 return;
             }
 
@@ -814,9 +928,9 @@
             tasks.forEach((task, index) => {
                 const assignedName = shuffledNames[index % shuffledNames.length];
                 outputHtml += `
-                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                    <div class="bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
                         <span class="font-bold text-pink-200">${escapeHtml(task)}</span>
-                        <span class="bg-white/20 text-white px-2.5 py-1 rounded-xl font-black">${escapeHtml(assignedName)}</span>
+                        <span class="bg-white/25 text-white px-2.5 py-1 rounded-xl font-black">${escapeHtml(assignedName)}</span>
                     </div>
                 `;
                 waTextList += `▪️ *${task}* ➔ ${assignedName}\n`;
@@ -831,7 +945,7 @@
             const encodedWA = encodeURIComponent(waTextList.trim());
 
             document.getElementById('wheelWhatsAppContainer').innerHTML = `
-                <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-900/40">
+                <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md">
                     <i class="fa-brands fa-whatsapp text-base"></i><span>Condividi Assegnazioni su WhatsApp</span>
                 </a>
             `;
@@ -843,7 +957,7 @@
             const fondoData = dbData.fondo ? Object.values(dbData.fondo) : [];
             let categorie = {};
             fondoData.forEach(item => {
-                let cat = item.materia || item.title || 'Altro spese';
+                let cat = item.materia || item.title || 'Altro';
                 if (cat.toLowerCase().includes('regal')) cat = 'Regali Maestri';
                 else if (cat.toLowerCase().includes('gita') || cat.toLowerCase().includes('bus')) cat = 'Gite & Trasporti';
                 else if (cat.toLowerCase().includes('materiale')) cat = 'Materiale Didattico';
@@ -880,9 +994,6 @@
             
             const materiaWrapper = document.getElementById('materiaWrapper');
             const dateWrapper = document.getElementById('dateWrapper');
-            const labelTitle = document.getElementById('labelTitle');
-            const labelDetails = document.getElementById('labelDetails');
-            const labelFileUrl = document.getElementById('labelFileUrl');
             const modalTitle = document.getElementById('modalTitle');
             const saveBtn = document.getElementById('saveBtn');
 
@@ -918,7 +1029,7 @@
             const fileUrl = document.getElementById('inputFileUrl').value;
 
             const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerText = "Salvataggio in corso...";
+            saveBtn.innerText = "Salvataggio...";
             saveBtn.disabled = true;
 
             const { db, ref, set } = window.fbDB;
@@ -945,10 +1056,6 @@
                 saveBtn.innerText = "Pubblica";
                 saveBtn.disabled = false;
                 if(section === 'fondo') renderFondoChart();
-            }).catch(err => {
-                alert('Errore di salvataggio: ' + err.message);
-                saveBtn.innerText = "Pubblica";
-                saveBtn.disabled = false;
             });
         }
 
@@ -1000,11 +1107,10 @@
                 summaryTextForWA += `*Opzione:* ${optName}\n*Votanti (${namesList.length}):*\n`;
                 if (namesList.length === 0) {
                     contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4 font-medium">Nessuna adesione.</p>`;
-                    summaryTextForWA += `Nessun voto.\n`;
                 } else {
                     contentEl.innerHTML = namesList.map(name => {
                         summaryTextForWA += `- ${name}\n`;
-                        return `<div class="flex items-center space-x-2.5 bg-indigo-50/80 p-3 rounded-2xl text-xs font-bold text-indigo-900 border border-indigo-100"><span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-child"></i></span><span>${escapeHtml(name)}</span></div>`;
+                        return `<div class="flex items-center space-x-2.5 bg-indigo-50/80 p-3 rounded-2xl text-xs font-bold text-indigo-900 border border-indigo-100"><span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px]"><i class="fa-solid fa-child"></i></span><span>${escapeHtml(name)}</span></div>`;
                     }).join('');
                 }
             } else {
@@ -1089,7 +1195,6 @@
 
             const t = getTimeRemaining(latestCD.date);
             const isUrgent = t.days <= 2 && t.total > 0;
-            
             const homeCDHtml = document.getElementById('homeCountdownContent');
             if (homeCDHtml) homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
         }, 1000);
@@ -1097,8 +1202,7 @@
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
-            const compitiObj = dbData.compiti || {};
-            const compitiArr = Object.values(compitiObj);
+            const compitiArr = Object.values(dbData.compiti || {});
             const summaryTextEl = document.getElementById('homeworkSummaryText');
             if (summaryTextEl) summaryTextEl.innerText = compitiArr.length === 0 ? "Nessun compito registrato al momento." : `Ci sono ${compitiArr.length} attività/compiti attivi nel diario di classe.`;
 
@@ -1113,7 +1217,7 @@
                     const t = latestCD.date ? getTimeRemaining(latestCD.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
                     const isUrgent = t.days <= 2 && t.total > 0;
                     const cardBg = isUrgent ? 'bg-gradient-to-br from-rose-950 via-purple-950 to-indigo-950 border-rose-500/50 animate-pulse' : 'bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950 border-white/10';
-                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\n${isUrgent ? '🚨 MANCA POCHISSIMO! 🚨\n' : ''}Mancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!`);
+                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!`);
                     
                     homeCountdownContainer.innerHTML = `
                     <div class="${cardBg} text-white p-6 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden mb-4 border transition-all">
@@ -1127,7 +1231,7 @@
                             </div>
                         </div>
                         <div class="flex flex-col items-end space-y-2.5 z-10">
-                            <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3.5 rounded-2xl transition shadow-lg flex items-center justify-center" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                            <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3.5 rounded-2xl transition shadow-lg flex items-center justify-center" title="Condividi"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                             ${isAdmin ? `<div class="bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/20">${getAdminButtons('countdown', latestCD.id)}</div>` : ''}
                         </div>
                     </div>`;
@@ -1137,7 +1241,7 @@
             // Compiti
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
-                const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}`);
+                const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}`);
                 const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-2 animate-pulse">Nuovo</span>` : '';
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
@@ -1152,7 +1256,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Condividi"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('compiti', item.id)}
                     </div>
                 </div>`;
