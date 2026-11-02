@@ -586,7 +586,7 @@
             const childName = childNameInput ? childNameInput.value.trim() : '';
 
             if (!childName) {
-                alert('Inserisci il nome del bambino/a prima di votare!');
+                alert('Inserisci prima il nome del bambino/a!');
                 if (childNameInput) childNameInput.focus();
                 return;
             }
@@ -597,7 +597,7 @@
             let poll = dbData.sondaggi[pollId];
             if (!poll.votes) poll.votes = {};
 
-            // Rimuovi il voto precedente del bambino da qualsiasi altra opzione nello stesso sondaggio (un solo voto per bambino)
+            // Rimuovi il voto precedente del bambino da qualsiasi altra opzione nello stesso sondaggio
             for (const opt in poll.votes) {
                 if (!Array.isArray(poll.votes[opt])) poll.votes[opt] = [];
                 poll.votes[opt] = poll.votes[opt].filter(name => name.toLowerCase() !== childName.toLowerCase());
@@ -838,7 +838,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi con Modale Votanti
+            // Sondaggi Interattivi con Input Nome e Pulsanti Voto/Elenco
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -887,10 +887,12 @@
                         </div>
                     </div>
                     
-                    <!-- Campo inserimento nome bambino -->
-                    <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center space-x-2">
-                        <i class="fa-solid fa-child text-indigo-600 text-base"></i>
-                        <input type="text" id="voter_${item.id}" placeholder="Inserisci prima il nome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <!-- Campo inserimento nome bambino in evidenza -->
+                    <div class="bg-indigo-50/80 p-3.5 rounded-2xl border border-indigo-200 flex items-center space-x-2.5">
+                        <div class="bg-indigo-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                            <i class="fa-solid fa-child"></i>
+                        </div>
+                        <input type="text" id="voter_${item.id}" placeholder="Scrivi qui il nome del bambino/a prima di votare..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                     </div>
 
                     <div class="space-y-2.5 pt-1">
