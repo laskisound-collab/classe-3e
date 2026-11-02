@@ -15,7 +15,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB6o4NS1nZJ-2QrPkUhom41Pq2ZNJioWuc",
@@ -31,7 +31,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.fbDB = { db, ref, set, onValue };
+        window.fbDB = { db, ref, set, onValue, runTransaction };
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
@@ -280,7 +280,7 @@
             </div>
         </section>
 
-        <!-- SEZIONE SNAKE 3E CON CLASSIFICA UFFICIALE -->
+        <!-- SEZIONE SNAKE 3E CON CLASSIFICA -->
         <section id="snake" class="tab-content space-y-4">
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -293,10 +293,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Pannello Gioco -->
                 <div class="md:col-span-2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 rounded-3xl shadow-2xl border border-white/10 flex flex-col items-center justify-center relative overflow-hidden">
-                    
-                    <!-- Input Nome Giocatore -->
                     <div id="snakePlayerBox" class="w-full max-w-[320px] mb-4 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 space-y-2">
                         <label class="block text-[11px] font-bold text-indigo-200">Il tuo nome o del genitore/bambino:</label>
                         <div class="flex gap-2">
@@ -314,12 +311,10 @@
                         <span id="snakeStatusText" class="text-indigo-300 italic">Inserisci il nome per iniziare</span>
                     </div>
 
-                    <!-- Canvas del gioco -->
                     <div class="bg-black/60 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-inner">
                         <canvas id="snakeCanvas" width="300" height="300" class="rounded-xl block bg-slate-950"></canvas>
                     </div>
 
-                    <!-- Controlli -->
                     <div class="mt-4 flex flex-col items-center space-y-3 w-full max-w-[320px]">
                         <button id="snakeStartBtn" onclick="startSnakeGame()" disabled class="w-full bg-slate-700 text-slate-400 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition flex items-center justify-center space-x-2 cursor-not-allowed">
                             <i class="fa-solid fa-play text-sm"></i><span>Avvia Partita</span>
@@ -337,7 +332,6 @@
                     </div>
                 </div>
 
-                <!-- Pannello Classifica Ufficiale -->
                 <div class="md:col-span-1 bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex flex-col justify-between space-y-4">
                     <div>
                         <div class="flex items-center space-x-2 mb-3">
@@ -472,6 +466,17 @@
 
     </main>
 
+    <!-- Footer con Contatore Visite in tempo reale -->
+    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200/80 py-4 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500 font-medium">
+            <span>Bacheca & Diario Classe 3E - Scuola Mariele Ventre</span>
+            <div class="flex items-center space-x-2 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-xl text-indigo-900 font-bold shadow-2xs">
+                <i class="fa-solid fa-eye text-indigo-600"></i>
+                <span>Visite totali: <strong id="totalVisitsCounter" class="text-indigo-700">...</strong></span>
+            </div>
+        </div>
+    </footer>
+
     <!-- Modale Login Admin -->
     <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
@@ -522,11 +527,11 @@
                 </div>
                 <div>
                     <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelDetails">Dettagli / Opzioni (una per riga)</label>
-                    <textarea id="inputDetails" rows="4" placeholder="Opzione 1&#10;Opzione 2&#10;Opzione 3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium"></textarea>
+                    <textarea id="inputDetails" rows="4" placeholder="Opzione 1&#10;Opzione 2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegati (opzionale)</label>
-                    <input type="text" id="inputFileUrl" placeholder="https://link.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium">
+                    <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegato / Link Registro (opzionale)</label>
+                    <input type="text" id="inputFileUrl" placeholder="https://link-registro-o-file.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 transition">Pubblica</button>
             </form>
@@ -548,7 +553,7 @@
         </div>
     </div>
 
-    <!-- Script Logica App, Firebase, Ruota, Grafico, Countdown & Snake con Classifica -->
+    <!-- Script Logica App, Firebase, Contatore Visite e Condivisione Con Link Registro -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -560,7 +565,7 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {} };
+        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {}, stats: { visits: 0 } };
         let activeVoterSession = {}; 
         let fondoChartInstance = null;
 
@@ -576,9 +581,20 @@
         let currentPlayer = localStorage.getItem('snakePlayerName_3e') || '';
 
         window.addEventListener('firebase-ready', () => {
-            const { db, ref, onValue } = window.fbDB;
+            const { db, ref, onValue, runTransaction } = window.fbDB;
             const dataRef = ref(db, 'classe3e');
             
+            // Incrementa contatore visite (una volta per sessione browser)
+            const visitedKey = sessionStorage.getItem('visited_3e');
+            if (!visitedKey) {
+                const visitsRef = ref(db, 'classe3e/stats/visits');
+                runTransaction(visitsRef, (currentVisits) => {
+                    return (currentVisits || 0) + 1;
+                }).then(() => {
+                    sessionStorage.setItem('visited_3e', 'true');
+                });
+            }
+
             onValue(dataRef, (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
@@ -587,8 +603,16 @@
                 }
                 renderAll();
                 renderSnakeLeaderboard();
+                updateVisitsCounter();
             });
         });
+
+        function updateVisitsCounter() {
+            const counterEl = document.getElementById('totalVisitsCounter');
+            if (counterEl && dbData.stats && dbData.stats.visits !== undefined) {
+                counterEl.innerText = dbData.stats.visits;
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
@@ -624,10 +648,7 @@
 
         function confirmSnakePlayer() {
             const inputVal = document.getElementById('snakePlayerName').value.trim();
-            if (!inputVal) {
-                alert('Inserisci il nome prima di iniziare!');
-                return;
-            }
+            if (!inputVal) { alert('Inserisci il nome prima di iniziare!'); return; }
             currentPlayer = inputVal;
             localStorage.setItem('snakePlayerName_3e', currentPlayer);
             checkPlayerSessionUI();
@@ -659,11 +680,7 @@
         function startSnakeGame() {
             if (!currentPlayer) return;
             if (snakeInterval) clearInterval(snakeInterval);
-            snake = [
-                { x: 150, y: 150 },
-                { x: 140, y: 150 },
-                { x: 130, y: 150 }
-            ];
+            snake = [{ x: 150, y: 150 }, { x: 140, y: 150 }, { x: 130, y: 150 }];
             score = 0;
             dx = 10;
             dy = 0;
@@ -680,8 +697,6 @@
                 gameRunning = false;
                 clearInterval(snakeInterval);
                 document.getElementById('snakeStatusText').innerText = "Game Over! Punteggio: " + score;
-                
-                // Salva punteggio su Firebase
                 saveSnakeScoreToFirebase(currentPlayer, score);
 
                 const appUrl = window.location.href.split('#')[0] + '#snake';
@@ -704,8 +719,6 @@
         function saveSnakeScoreToFirebase(name, finalScore) {
             const { db, ref, set } = window.fbDB;
             if (!dbData.snakeScores) dbData.snakeScores = {};
-
-            // Se il giocatore ha già un punteggio, aggiornalo solo se il nuovo è più alto
             let existingUserKey = null;
             for (const key in dbData.snakeScores) {
                 if (dbData.snakeScores[key].name.toLowerCase() === name.toLowerCase()) {
@@ -713,7 +726,6 @@
                     break;
                 }
             }
-
             if (existingUserKey) {
                 if (finalScore > dbData.snakeScores[existingUserKey].score) {
                     dbData.snakeScores[existingUserKey].score = finalScore;
@@ -723,14 +735,12 @@
                 const newKey = 'player_' + Date.now();
                 dbData.snakeScores[newKey] = { name: name, score: finalScore, date: Date.now() };
             }
-
             set(ref(db, 'classe3e'), dbData);
         }
 
         function renderSnakeLeaderboard() {
             const leaderboardEl = document.getElementById('snakeLeaderboardList');
             if (!leaderboardEl) return;
-
             const scoresObj = dbData.snakeScores || {};
             const scoresArr = Object.values(scoresObj).sort((a, b) => b.score - a.score);
 
@@ -742,7 +752,7 @@
             leaderboardEl.innerHTML = scoresArr.map((item, index) => {
                 let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
                 let iconHtml = `<span class="font-black text-xs text-slate-500 w-5">${index + 1}°</span>`;
-                if (index === 0) { badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 shadow-xs'; iconHtml = `<i class="fa-solid fa-trophy text-amber-500"></i>`; }
+                if (index === 0) { badgeColor = 'bg-amber-50 text-amber-800 border-amber-200'; iconHtml = `<i class="fa-solid fa-trophy text-amber-500"></i>`; }
                 else if (index === 1) { badgeColor = 'bg-slate-100 text-slate-700 border-slate-300'; iconHtml = `<i class="fa-solid fa-medal text-slate-400"></i>`; }
                 else if (index === 2) { badgeColor = 'bg-amber-900/10 text-amber-900 border-amber-900/20'; iconHtml = `<i class="fa-solid fa-award text-amber-700"></i>`; }
 
@@ -786,16 +796,12 @@
             }
         }
 
-        function randomTen(min, max) {
-            return Math.round((Math.random() * (max - min) + min) / 10) * 10;
-        }
+        function randomTen(min, max) { return Math.round((Math.random() * (max - min) + min) / 10) * 10; }
 
         function createFood() {
             food.x = randomTen(0, snakeCanvas.width - 10);
             food.y = randomTen(0, snakeCanvas.height - 10);
-            snake.forEach(part => {
-                if (part.x === food.x && part.y === food.y) createFood();
-            });
+            snake.forEach(part => { if (part.x === food.x && part.y === food.y) createFood(); });
         }
 
         function drawFood() {
@@ -814,11 +820,7 @@
 
         function changeSnakeDir(direction) {
             if (!gameRunning) return;
-            const goingUp = dy === -10;
-            const goingDown = dy === 10;
-            const goingRight = dx === 10;
-            const goingLeft = dx === -10;
-
+            const goingUp = dy === -10, goingDown = dy === 10, goingRight = dx === 10, goingLeft = dx === -10;
             if (direction === 'UP' && !goingDown) { dx = 0; dy = -10; }
             if (direction === 'DOWN' && !goingUp) { dx = 0; dy = 10; }
             if (direction === 'LEFT' && !goingRight) { dx = -10; dy = 0; }
@@ -833,7 +835,6 @@
             if (e.key === 'ArrowRight') changeSnakeDir('RIGHT');
         });
 
-        // --- Funzioni standard app ---
         function checkAndCleanExpiredCompiti() {
             if (!dbData.compiti) return;
             const now = Date.now();
@@ -841,8 +842,7 @@
             for (const id in dbData.compiti) {
                 const compito = dbData.compiti[id];
                 if (compito.date) {
-                    const expiryTime = new Date(compito.date).getTime();
-                    if (now >= expiryTime + (12 * 60 * 60 * 1000)) {
+                    if (now >= new Date(compito.date).getTime() + (12 * 60 * 60 * 1000)) {
                         delete dbData.compiti[id];
                         hasChanges = true;
                     }
@@ -906,7 +906,6 @@
                 activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100/80');
             }
             history.replaceState(null, '', '#' + tabId);
-
             if (tabId === 'fondo') renderFondoChart();
         }
 
@@ -916,14 +915,10 @@
             const names = namesRaw.split('\n').map(n => n.trim()).filter(n => n.length > 0);
             const tasks = tasksRaw.split('\n').map(t => t.trim()).filter(t => t.length > 0);
 
-            if (names.length === 0 || tasks.length === 0) {
-                alert('Inserisci almeno un nome e un compito!');
-                return;
-            }
+            if (names.length === 0 || tasks.length === 0) { alert('Inserisci almeno un nome e un compito!'); return; }
 
             const shuffledNames = [...names].sort(() => Math.random() - 0.5);
-            let outputHtml = '';
-            let waTextList = `🎉 *Assegnazioni Festa / Attività - Classe 3E*\n\n`;
+            let outputHtml = '', waTextList = `🎉 *Assegnazioni Festa / Attività - Classe 3E*\n\n`;
 
             tasks.forEach((task, index) => {
                 const assignedName = shuffledNames[index % shuffledNames.length];
@@ -1162,8 +1157,8 @@
         function renderMultipleLinks(fileUrlStr) {
             if (!fileUrlStr) return '';
             const urls = fileUrlStr.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
-            if (urls.length === 0) return `<div class="pt-2"><a href="${escapeHtml(fileUrlStr)}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato</span></a></div>`;
-            return `<div class="pt-2 flex flex-wrap gap-2">` + urls.map((url, index) => `<a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-file-pdf"></i><span>Allegato ${urls.length > 1 ? (index + 1) : 'File'}</span></a>`).join('') + `</div>`;
+            if (urls.length === 0) return `<div class="pt-2"><a href="${escapeHtml(fileUrlStr)}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato / Link Registro</span></a></div>`;
+            return `<div class="pt-2 flex flex-wrap gap-2">` + urls.map((url, index) => `<a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2.5 rounded-2xl font-bold transition border border-indigo-100"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>${urls.length > 1 ? 'Link ' + (index + 1) : 'Apri Link / Registro'}</span></a>`).join('') + `</div>`;
         }
 
         function getAdminButtons(section, id) {
@@ -1238,11 +1233,22 @@
                 }
             }
 
-            // Compiti
+            // Compiti (Con inclusione link web/registro nella condivisione WhatsApp)
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
-                const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}`);
+                
+                const cleanBaseUrl = window.location.href.split('#')[0];
+                const appUrl = cleanBaseUrl + '#compiti';
+                
+                let waText = `📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n`;
+                if (item.date) waText += `⏰ Scadenza: ${new Date(item.date).toLocaleString('it-IT')}\n`;
+                if (item.details) waText += `${item.details}\n`;
+                if (item.fileUrl) waText += `🔗 *Link Registro / Approfondimento:* ${item.fileUrl}\n`;
+                waText += `\n📲 *Verifica sulla Bacheca di Classe:* ${appUrl}`;
+                
+                const encodedWA = encodeURIComponent(waText.trim());
                 const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-2 animate-pulse">Nuovo</span>` : '';
+                
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
@@ -1256,7 +1262,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('compiti', item.id)}
                     </div>
                 </div>`;
@@ -1521,7 +1527,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Condividi"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('promemoria', item.id)}
                     </div>
                 </div>`;
