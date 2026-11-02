@@ -338,6 +338,20 @@
         </div>
     </div>
 
+    <!-- Modale Visualizzazione Elenco Votanti -->
+    <div id="votersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-extrabold text-slate-900" id="votersModalTitle">Elenco Votanti</h3>
+                <button onclick="closeVotersModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="votersListContent" class="space-y-2 max-h-60 overflow-y-auto">
+                <!-- Lista riempita via JS -->
+            </div>
+            <button onclick="closeVotersModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-2xl text-xs font-bold transition">Chiudi</button>
+        </div>
+    </div>
+
     <!-- Script Logica App, Firebase, Orologio & Countdown in Tempo Reale -->
     <script>
         function updateClock() {
@@ -547,7 +561,7 @@
                 if (!itemId || !dbData[section][itemId].votes) {
                     const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
                     let votes = {};
-                    options.forEach(opt => { votes[opt] = []; }); // Salviamo array di nomi per ogni opzione
+                    options.forEach(opt => { votes[opt] = []; });
                     itemData.votes = votes;
                 } else {
                     itemData.votes = dbData[section][itemId].votes;
@@ -599,6 +613,34 @@
             }).catch(err => {
                 alert('Errore nella votazione: ' + err.message);
             });
+        }
+
+        function showVotersModal(pollId, optionName) {
+            const poll = dbData.sondaggi && dbData.sondaggi[pollId];
+            if (!poll || !poll.votes || !poll.votes[optionName]) return;
+
+            const namesList = poll.votes[optionName];
+            const titleEl = document.getElementById('votersModalTitle');
+            const contentEl = document.getElementById('votersListContent');
+
+            titleEl.innerText = "Votanti per: " + optionName;
+            
+            if (namesList.length === 0) {
+                contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Nessuna adesione per questa opzione.</p>`;
+            } else {
+                contentEl.innerHTML = namesList.map(name => `
+                    <div class="flex items-center space-x-2 bg-indigo-50/70 p-2.5 rounded-xl text-xs font-bold text-indigo-900">
+                        <i class="fa-solid fa-child text-indigo-600"></i>
+                        <span>${escapeHtml(name)}</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('votersModal').classList.remove('hidden');
+        }
+
+        function closeVotersModal() {
+            document.getElementById('votersModal').classList.add('hidden');
         }
 
         function deleteItem(section, id) {
@@ -796,7 +838,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi con Nome Bambino
+            // Sondaggi Interattivi con Modale Votanti
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -808,19 +850,21 @@
                 for (const [optionName, namesList] of Object.entries(votesMap)) {
                     const count = Array.isArray(namesList) ? namesList.length : 0;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                    const namesStr = Array.isArray(namesList) && namesList.length > 0 ? namesList.join(', ') : 'Nessuna adesione';
                     
                     optionsHtml += `
                         <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
-                                <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
+                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName)}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"><i class="fa-solid fa-list mr-1"></i> Elenco (${count})</button>
+                                </div>
                             </div>
                             <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
                                 <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
                             </div>
                             <div class="flex justify-between items-center text-[11px] text-slate-500">
-                                <span>Bambini: <strong class="text-indigo-600">${escapeHtml(namesStr)}</strong></span>
+                                <span>Adesioni registrate</span>
                                 <span class="font-black text-indigo-700">${count} voti (${percentage}%)</span>
                             </div>
                         </div>
@@ -844,12 +888,9 @@
                     </div>
                     
                     <!-- Campo inserimento nome bambino -->
-                    <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center gap-2">
-                        <div class="flex items-center space-x-2 w-full">
-                            <i class="fa-solid fa-child text-indigo-600 text-base"></i>
-                            <input type="text" id="voter_${item.id}" placeholder="Inserisci il nome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                        </div>
-                        <span class="text-[11px] text-indigo-700 font-bold whitespace-hidden sm:whitespace-nowrap">Scrivi prima il nome</span>
+                    <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex items-center space-x-2">
+                        <i class="fa-solid fa-child text-indigo-600 text-base"></i>
+                        <input type="text" id="voter_${item.id}" placeholder="Inserisci prima il nome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                     </div>
 
                     <div class="space-y-2.5 pt-1">
