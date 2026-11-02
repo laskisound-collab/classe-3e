@@ -20,4 +20,145 @@
             storageBucket: "classe3e-f033d.appspot.com",
             messagingSenderId: "228436277197",
             appId: "1:228436277197:web:771ed2341a98a5ccc43684",
-            measurementId: "
+            measurementId: "G-00RMS3J403"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.fbDB = { db, ref, set, onValue };
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .live-clock { animation: pulse-subtle 2s infinite; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-100 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header con Orologio in Tempo Reale -->
+    <header class="bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-800 text-white shadow-xl sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 text-white p-2.5 rounded-2xl font-black text-xl shadow-inner flex items-center justify-center w-12 h-12">
+                    3E
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-tight">Classe 3E - Mariele Ventre</h1>
+                    <div class="flex items-center space-x-2 text-xs text-indigo-200 mt-0.5">
+                        <span class="live-clock inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
+                        <span id="liveClockDisplay" class="font-medium tracking-wide">Caricamento orologio...</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button id="adminBtn" onclick="toggleAdminModal()" class="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-lock text-xs text-amber-300" id="adminIcon"></i>
+                    <span id="adminText">Area Admin</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200/60 sticky top-[73px] z-40 overflow-x-auto">
+        <div class="max-w-4xl mx-auto flex space-x-1.5 px-3 py-2.5">
+            <button onclick="switchTab('compiti')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-indigo-600 bg-indigo-50 shadow-sm whitespace-nowrap transition flex items-center space-x-2" data-tab="compiti"><i class="fa-solid fa-book-open"></i><span>Compiti</span></button>
+            <button onclick="switchTab('orario')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="orario"><i class="fa-solid fa-calendar-days"></i><span>Orario</span></button>
+            <button onclick="switchTab('mensa')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="mensa"><i class="fa-solid fa-utensils"></i><span>Menu Mensa</span></button>
+            <button onclick="switchTab('fondo')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
+            <button onclick="switchTab('avvisi')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
+            <button onclick="switchTab('galleria')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="galleria"><i class="fa-solid fa-images"></i><span>Foto & Video</span></button>
+            <button onclick="switchTab('linkutili')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="linkutili"><i class="fa-solid fa-link"></i><span>Link Utili</span></button>
+            <button onclick="switchTab('compleanni')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="compleanni"><i class="fa-solid fa-cake-candles"></i><span>Compleanni</span></button>
+            <button onclick="switchTab('promemoria')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="promemoria"><i class="fa-solid fa-clock"></i><span>Promemoria</span></button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full pb-20 space-y-6">
+        
+        <!-- SEZIONE COMPITI -->
+        <section id="compiti" class="tab-content active space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 gap-3">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Diario dei Compiti</h2>
+                    <p class="text-xs text-slate-500 font-medium">Attività e consegne con supporto multi-allegato</p>
+                </div>
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <select id="filterMateria" onchange="renderAll()" class="bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <option value="tutte">Tutte le materie</option>
+                        <option value="Italiano">Italiano</option>
+                        <option value="Matematica">Matematica</option>
+                        <option value="Inglese">Inglese</option>
+                        <option value="Storia/Geografia">Storia / Geografia</option>
+                        <option value="Scienze">Scienze</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                    <button onclick="openAddModal('compiti')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition whitespace-nowrap flex items-center space-x-1.5">
+                        <i class="fa-solid fa-plus"></i><span>Nuovo Compito</span>
+                    </button>
+                </div>
+            </div>
+            <div id="list-compiti" class="space-y-3.5">
+                <p class="text-slate-400 text-center py-8 text-sm font-medium">Caricamento in corso...</p>
+            </div>
+        </section>
+
+        <!-- SEZIONE ORARIO -->
+        <section id="orario" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Orario Scolastico Settimanale</h2>
+                    <p class="text-xs text-slate-500 font-medium">Quadro delle lezioni gestibile dall'Admin</p>
+                </div>
+                <button onclick="openAddModal('orario')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Giorno</span>
+                </button>
+            </div>
+            <div id="list-orario" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- SEZIONE MENU MENSA -->
+        <section id="mensa" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Menu Mensa Scolastica</h2>
+                    <p class="text-xs text-slate-500 font-medium">Consulta il PDF o la foto ufficiale del menu</p>
+                </div>
+                <button onclick="openAddModal('mensa')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Pubblica Menu (PDF/Link)</span>
+                </button>
+            </div>
+            <div id="list-mensa" class="space-y-3.5"></div>
+        </section>
+
+        <!-- SEZIONE FONDO CASSA -->
+        <section id="fondo" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Fondo Cassa di Classe</h2>
+                    <p class="text-xs text-slate-500 font-medium">Bilancio e spese trasparenti</p>
+                </div>
+                <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Nuovo Movimento</span>
+                </button>
+            </div>
+            <div id="list-fondo" class="space-y-3.5"></div>
+        </section>
+
+        <!-- SEZIONE AVVISI -->
+        <section id="avvisi" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrab
