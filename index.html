@@ -337,17 +337,20 @@
         </div>
     </div>
 
-    <!-- Modale Visualizzazione Elenco Votanti -->
+    <!-- Modale Visualizzazione Elenco Votanti & Riepilogo con Condivisione WhatsApp -->
     <div id="votersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100 flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center">
                 <h3 class="text-lg font-extrabold text-slate-900" id="votersModalTitle">Elenco Votanti</h3>
                 <button onclick="closeVotersModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div id="votersListContent" class="space-y-2 max-h-60 overflow-y-auto">
+            <div id="votersListContent" class="space-y-2 overflow-y-auto flex-1 pr-1">
                 <!-- Lista riempita via JS -->
             </div>
-            <button onclick="closeVotersModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-2xl text-xs font-bold transition">Chiudi</button>
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+                <div id="modalWhatsAppContainer"></div>
+                <button onclick="closeVotersModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-2xl text-xs font-bold transition">Chiudi</button>
+            </div>
         </div>
     </div>
 
@@ -637,30 +640,37 @@
 
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
+            const whatsappContainer = document.getElementById('modalWhatsAppContainer');
+
+            let summaryTextForWA = `📊 *Sondaggio 3E: ${poll.title}*\n\n`;
 
             if (optionName) {
-                // Riepilogo di una specifica opzione
                 titleEl.innerText = "Votanti per: " + optionName;
                 const namesList = poll.votes && poll.votes[optionName] ? poll.votes[optionName] : [];
                 
+                summaryTextForWA += `*Opzione:* ${optionName}\n*Votanti (${namesList.length}):*\n`;
                 if (namesList.length === 0) {
                     contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Nessuna adesione per questa opzione.</p>`;
+                    summaryTextForWA += `Nessun voto registrato.`;
                 } else {
-                    contentEl.innerHTML = namesList.map(name => `
-                        <div class="flex items-center space-x-2 bg-indigo-50/70 p-2.5 rounded-xl text-xs font-bold text-indigo-900">
-                            <i class="fa-solid fa-child text-indigo-600"></i>
-                            <span>${escapeHtml(name)}</span>
-                        </div>
-                    `).join('');
+                    contentEl.innerHTML = namesList.map(name => {
+                        summaryTextForWA += `- ${name}\n`;
+                        return `
+                            <div class="flex items-center space-x-2 bg-indigo-50/70 p-2.5 rounded-xl text-xs font-bold text-indigo-900">
+                                <i class="fa-solid fa-child text-indigo-600"></i>
+                                <span>${escapeHtml(name)}</span>
+                            </div>
+                        `;
+                    }).join('');
                 }
             } else {
-                // Riepilogo generale di tutte le opzioni (Tasto "Visualizza Riepilogo")
                 titleEl.innerText = "Riepilogo Sondaggio";
                 let summaryHtml = '';
                 const votesMap = poll.votes || {};
 
                 for (const [opt, namesList] of Object.entries(votesMap)) {
                     const count = Array.isArray(namesList) ? namesList.length : 0;
+                    summaryTextForWA += `*${opt}* (${count} voti):\n`;
                     summaryHtml += `
                         <div class="mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
                             <div class="font-bold text-xs text-indigo-900 mb-1.5 flex justify-between">
@@ -668,13 +678,24 @@
                                 <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black">${count} voti</span>
                             </div>
                             <div class="space-y-1">
-                                ${count === 0 ? '<span class="text-[11px] text-slate-400 italic">Nessun voto</span>' : namesList.map(n => `<span class="inline-block bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-lg text-[11px] font-semibold mr-1 mb-1"><i class="fa-solid fa-child mr-1 text-indigo-500"></i>${escapeHtml(n)}</span>`).join('')}
+                                ${count === 0 ? '<span class="text-[11px] text-slate-400 italic">Nessun voto</span>' : namesList.map(n => {
+                                    summaryTextForWA += `  - ${n}\n`;
+                                    return `<span class="inline-block bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-lg text-[11px] font-semibold mr-1 mb-1"><i class="fa-solid fa-child mr-1 text-indigo-500"></i>${escapeHtml(n)}</span>`;
+                                }).join('')}
                             </div>
                         </div>
                     `;
                 }
                 contentEl.innerHTML = summaryHtml || `<p class="text-slate-400 text-xs text-center py-4">Nessun voto registrato finora.</p>`;
+                summaryTextForWA += `\nPartecipa votando sulla Web App della classe!`;
             }
+
+            const encodedWA = encodeURIComponent(summaryTextForWA.trim());
+            whatsappContainer.innerHTML = `
+                <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-sm">
+                    <i class="fa-brands fa-whatsapp text-base"></i><span>Condividi Riepilogo su WhatsApp</span>
+                </a>
+            `;
 
             document.getElementById('votersModal').classList.remove('hidden');
         }
@@ -878,7 +899,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con validazione nome e opzioni cliccabili)
+            // Sondaggi Interattivi (Con validazione nome e visualizzazione opzioni)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
