@@ -7,6 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js per Grafico Fondo Cassa -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti per effetti visivi della Ruota -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -46,6 +51,9 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Stile Ruota */
+        #wheelCanvas { transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-indigo-50/40 to-blue-50/30 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
@@ -85,6 +93,7 @@
             <button onclick="switchTab('libri')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="libri"><i class="fa-solid fa-book"></i><span>Libri & Materiale</span></button>
             <button onclick="switchTab('countdown')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="countdown"><i class="fa-solid fa-hourglass-half"></i><span>Countdown</span></button>
             <button onclick="switchTab('sondaggi')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="sondaggi"><i class="fa-solid fa-square-poll-vertical"></i><span>Sondaggi</span></button>
+            <button onclick="switchTab('ruota')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="ruota"><i class="fa-solid fa-dharmachakra"></i><span>Ruota Festa</span></button>
             <button onclick="switchTab('fondo')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
             <button onclick="switchTab('avvisi')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
             <button onclick="switchTab('galleria')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" data-tab="galleria"><i class="fa-solid fa-images"></i><span>Foto & Video</span></button>
@@ -230,6 +239,54 @@
             <div id="list-sondaggi" class="space-y-4"></div>
         </section>
 
+        <!-- SEZIONE RUOTA FESTA (NUOVO) -->
+        <section id="ruota" class="tab-content space-y-4">
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center text-sm"><i class="fa-solid fa-dharmachakra"></i></span>
+                        Ruota delle Assegnazioni e Feste
+                    </h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Associa automaticamente genitori e compiti (es. torte, bibite, decorazioni)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pannello Configurazione -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200/80 space-y-4">
+                    <h3 class="font-black text-sm text-slate-900 uppercase tracking-wide">1. Inserisci elenchi</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nomi Genitori / Bambini (uno per riga)</label>
+                        <textarea id="wheelNames" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" placeholder="Mamma Giulia&#10;Papà Marco&#10;Mamma Sara"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Mansioni / Cose da portare (una per riga)</label>
+                        <textarea id="wheelTasks" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" placeholder="Torta al cioccolato&#10;Bibite e bicchieri&#10;Piatti e tovaglioli"></textarea>
+                    </div>
+                    <button onclick="spinWheel()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider transition shadow-lg shadow-pink-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-dharmachakra text-base animate-spin"></i><span>Gira la Ruota e Assegna!</span>
+                    </button>
+                </div>
+
+                <!-- Pannello Risultato & Condivisione -->
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl flex flex-col justify-between border border-white/10">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-pink-300 border border-white/10">Tabellone Abbinamenti</span>
+                            <span id="wheelStatusCount" class="text-xs text-indigo-200 font-bold">Pronto</span>
+                        </div>
+                        <h3 class="font-black text-lg text-white mb-3">Risultato Assegnazioni</h3>
+                        <div id="wheelResultOutput" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                            <p class="text-xs text-indigo-300 italic py-8 text-center">Inserisci i dati a sinistra e clicca su "Gira la Ruota" per generare gli abbinamenti casuali con i coriandoli!</p>
+                        </div>
+                    </div>
+                    <div id="wheelWhatsAppContainer" class="pt-4 mt-4 border-t border-white/10">
+                        <!-- Bottone WhatsApp generato dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- SEZIONE FONDO CASSA -->
         <section id="fondo" class="tab-content space-y-4">
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80">
@@ -238,12 +295,25 @@
                         <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm"><i class="fa-solid fa-wallet"></i></span>
                         Fondo Cassa di Classe
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Bilancio e spese trasparenti</p>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Bilancio e grafici di spesa trasparenti</p>
                 </div>
                 <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Nuovo Movimento</span>
                 </button>
             </div>
+
+            <!-- Grafico a Torta Spese (NUOVO) -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div class="md:col-span-1 flex flex-col justify-center space-y-3">
+                    <span class="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-amber-100 self-start">Trasparenza Finanziaria</span>
+                    <h3 class="font-black text-slate-900 text-base">Riepilogo Spese</h3>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed">Ecco la suddivisione visiva delle spese sostenute con il fondo cassa di classe.</p>
+                </div>
+                <div class="md:col-span-2 flex justify-center h-56">
+                    <canvas id="fondoChart"></canvas>
+                </div>
+            </div>
+
             <div id="list-fondo" class="space-y-3.5"></div>
         </section>
 
@@ -395,16 +465,14 @@
         </div>
     </div>
 
-    <!-- Modale Visualizzazione Elenco Votanti & Riepilogo con Condivisione WhatsApp -->
+    <!-- Modale Visualizzazione Elenco Votanti -->
     <div id="votersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100 flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center">
                 <h3 class="text-lg font-black text-slate-900" id="votersModalTitle">Elenco Votanti</h3>
                 <button onclick="closeVotersModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div id="votersListContent" class="space-y-2 overflow-y-auto flex-1 pr-1">
-                <!-- Lista riempita via JS -->
-            </div>
+            <div id="votersListContent" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
             <div class="space-y-2 pt-2 border-t border-slate-100">
                 <div id="modalWhatsAppContainer"></div>
                 <button onclick="closeVotersModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-2xl text-xs font-bold transition">Chiudi</button>
@@ -412,7 +480,7 @@
         </div>
     </div>
 
-    <!-- Script Logica App, Firebase, Orologio & Countdown in Tempo Reale -->
+    <!-- Script Logica App, Firebase, Ruota, Grafico e Countdown Scenografico -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -425,7 +493,8 @@
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
         let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
-        let activeVoterSession = {}; // Mappa locale: activeVoterSession[pollId] = "Nome del bambino"
+        let activeVoterSession = {}; 
+        let fondoChartInstance = null;
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -441,7 +510,6 @@
             });
         });
 
-        // Gestione apertura automatica della sezione in base all'hash nell'URL (es. #sondaggi)
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
             if (hash) {
@@ -459,7 +527,7 @@
                 const compito = dbData.compiti[id];
                 if (compito.date) {
                     const expiryTime = new Date(compito.date).getTime();
-                    const deleteTime = expiryTime + (12 * 60 * 60 * 1000); // 12 ore dopo la scadenza
+                    const deleteTime = expiryTime + (12 * 60 * 60 * 1000); 
                     if (now >= deleteTime) {
                         delete dbData.compiti[id];
                         hasChanges = true;
@@ -535,10 +603,119 @@
                 activeBtn.classList.add('text-indigo-600', 'bg-indigo-50/80', 'shadow-sm');
                 activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100/80');
             }
-            // Aggiorna l'URL senza ricaricare la pagina
             history.replaceState(null, '', '#' + tabId);
+
+            if (tabId === 'fondo') {
+                renderFondoChart();
+            }
         }
 
+        // --- Logica Ruota delle Assegnazioni con Coriandoli ---
+        function spinWheel() {
+            const namesRaw = document.getElementById('wheelNames').value;
+            const tasksRaw = document.getElementById('wheelTasks').value;
+
+            const names = namesRaw.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            const tasks = tasksRaw.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+
+            if (names.length === 0 || tasks.length === 0) {
+                alert('Inserisci almeno un nome e un compito/mansione!');
+                return;
+            }
+
+            // Mischia casualmente i nomi
+            const shuffledNames = [...names].sort(() => Math.random() - 0.5);
+            
+            let outputHtml = '';
+            let waTextList = `🎉 *Assegnazioni Festa / Attività - Classe 3E*\n\n`;
+
+            tasks.forEach((task, index) => {
+                const assignedName = shuffledNames[index % shuffledNames.length];
+                outputHtml += `
+                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                        <span class="font-bold text-pink-200">${escapeHtml(task)}</span>
+                        <span class="bg-white/20 text-white px-2.5 py-1 rounded-xl font-black">${escapeHtml(assignedName)}</span>
+                    </div>
+                `;
+                waTextList += `▪️ *${task}* ➔ ${assignedName}\n`;
+            });
+
+            document.getElementById('wheelResultOutput').innerHTML = outputHtml;
+            document.getElementById('wheelStatusCount').innerText = "Abbinamenti completati!";
+
+            // Lancia i coriandoli spettacolari!
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            const appUrl = window.location.href.split('#')[0] + '#ruota';
+            waTextList += `\n🔗 *Gestito tramite la Web App 3E:* ${appUrl}`;
+            const encodedWA = encodeURIComponent(waTextList.trim());
+
+            document.getElementById('wheelWhatsAppContainer').innerHTML = `
+                <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-900/40">
+                    <i class="fa-brands fa-whatsapp text-base"></i><span>Condividi Assegnazioni su WhatsApp</span>
+                </a>
+            `;
+        }
+
+        // --- Logica Grafico Fondo Cassa ---
+        function renderFondoChart() {
+            const ctx = document.getElementById('fondoChart');
+            if (!ctx) return;
+
+            const fondoData = dbData.fondo ? Object.values(dbData.fondo) : [];
+            
+            // Analisi automatica delle categorie o movimenti
+            let categorie = {};
+            fondoData.forEach(item => {
+                let cat = item.materia || item.title || 'Altro spese';
+                // Semplificazione categorie di esempio o basate sui titoli
+                if (cat.toLowerCase().includes('regal')) cat = 'Regali Maestri';
+                else if (cat.toLowerCase().includes('gita') || cat.toLowerCase().includes('bus')) cat = 'Gite & Trasporti';
+                else if (cat.toLowerCase().includes('materiale') || cat.toLowerCase().includes('cancelleria')) cat = 'Materiale Didattico';
+                else cat = 'Eventi e Varie';
+
+                categorie[cat] = (categorie[cat] || 0) + 1;
+            });
+
+            const labels = Object.keys(categorie).length > 0 ? Object.keys(categorie) : ['Regali Maestri', 'Gite', 'Materiale'];
+            const dataValues = Object.keys(categorie).length > 0 ? Object.values(categorie) : [1, 1, 1];
+
+            if (fondoChartInstance) {
+                fondoChartInstance.destroy();
+            }
+
+            fondoChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Gestione Modali e Dati ---
         function openAddModal(section, itemId = null) {
             document.getElementById('currentSection').value = section;
             document.getElementById('editItemId').value = itemId || '';
@@ -578,48 +755,18 @@
                 labelTitle.innerText = "Titolo / Argomento";
                 labelDetails.innerText = "Dettagli / Testo aggiuntivo";
                 labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
-            } else if (section === 'orario') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Giorno della settimana (Es. Lunedì)";
-                labelDetails.innerText = "Materie della giornata (separate da virgola o elenco)";
-                labelFileUrl.innerText = "Eventuale link allegato (opzionale)";
-            } else if (section === 'mensa') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Titolo Menu (Es. Menu Scolastico - Settimana A)";
-                labelDetails.innerText = "Note o indicazioni (opzionale)";
-                labelFileUrl.innerText = "Link PDF o Foto del Menu (Google Drive, ecc.)";
-            } else if (section === 'libri') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Titolo Libro o Lista Materiale (Es. Elenco Libri Classe 3E)";
-                labelDetails.innerText = "Descrizione o note aggiuntive (opzionale)";
-                labelFileUrl.innerText = "Link PDF del libro/materiale (Google Drive, ecc.)";
             } else if (section === 'countdown') {
                 materiaWrapper.classList.add('hidden');
                 dateWrapper.classList.remove('hidden');
-                labelTitle.innerText = "Nome Evento (Es. Fine della Scuola ☀️)";
+                labelTitle.innerText = "Nome Evento (Es. Gita Scolastica 🚌)";
                 labelDetails.innerText = "Descrizione breve (opzionale)";
                 labelFileUrl.innerText = "Link immagine o allegato (opzionale)";
-            } else if (section === 'sondaggi') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Domanda del Sondaggio (Es. Dove facciamo la gita?)";
-                labelDetails.innerText = "Opzioni di voto (inserisci una opzione per riga)";
-                labelFileUrl.innerText = "Link o note (opzionale)";
-            } else if (section === 'compleanni') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Nome del bambino / bambina";
-                labelDetails.innerText = "Data del compleanno (Es. 15 Settembre)";
-                labelFileUrl.innerText = "Link foto o auguri (opzionale)";
             } else {
                 materiaWrapper.classList.add('hidden');
                 dateWrapper.classList.remove('hidden');
                 labelTitle.innerText = "Titolo / Argomento";
                 labelDetails.innerText = "Dettagli / Testo aggiuntivo";
-                labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
+                labelFileUrl.innerText = "Link / Allegati";
             }
 
             document.getElementById('dataModal').classList.remove('hidden');
@@ -662,10 +809,8 @@
             if (section === 'sondaggi') {
                 const optionsArr = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
                 itemData.options = optionsArr;
-                
                 const existingVotes = (itemId && dbData[section][itemId] && dbData[section][itemId].votes) ? dbData[section][itemId].votes : {};
                 let votesObj = {};
-                
                 optionsArr.forEach((opt, index) => {
                     votesObj[index] = existingVotes[index] || [];
                 });
@@ -678,6 +823,7 @@
                 closeAddModal();
                 saveBtn.innerText = "Pubblica";
                 saveBtn.disabled = false;
+                if(section === 'fondo') renderFondoChart();
             }).catch(err => {
                 alert('Errore di salvataggio: ' + err.message);
                 saveBtn.innerText = "Pubblica";
@@ -688,13 +834,11 @@
         function validateVoter(pollId) {
             const inputEl = document.getElementById(`voterInput_${pollId}`);
             const nameValue = inputEl ? inputEl.value.trim() : '';
-
             if (!nameValue) {
                 alert('Inserisci prima il nome del bambino/a!');
                 if (inputEl) inputEl.focus();
                 return;
             }
-
             activeVoterSession[pollId] = nameValue;
             renderAll();
         }
@@ -706,12 +850,10 @@
 
         function votePoll(pollId, optionIndex) {
             const childName = activeVoterSession[pollId];
-
             if (!childName) {
                 alert('Prima di votare devi inserire e confermare il nome del bambino/a!');
                 return;
             }
-
             const { db, ref, set } = window.fbDB;
             if (!dbData.sondaggi || !dbData.sondaggi[pollId]) return;
 
@@ -740,8 +882,6 @@
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
             const whatsappContainer = document.getElementById('modalWhatsAppContainer');
-            
-            // Pulisce l'URL rimuovendo eventuali hash esistenti e aggiunge #sondaggi
             let cleanBaseUrl = window.location.href.split('#')[0];
             const appUrl = cleanBaseUrl + '#sondaggi';
 
@@ -751,7 +891,6 @@
                 const optName = poll.options[optionIndex];
                 titleEl.innerText = "Votanti per: " + optName;
                 const namesList = poll.votes && poll.votes[optionIndex] ? poll.votes[optionIndex] : [];
-                
                 summaryTextForWA += `*Opzione:* ${optName}\n*Votanti (${namesList.length}):*\n`;
                 if (namesList.length === 0) {
                     contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4 font-medium">Nessuna adesione per questa opzione.</p>`;
@@ -759,19 +898,13 @@
                 } else {
                     contentEl.innerHTML = namesList.map(name => {
                         summaryTextForWA += `- ${name}\n`;
-                        return `
-                            <div class="flex items-center space-x-2.5 bg-indigo-50/80 p-3 rounded-2xl text-xs font-bold text-indigo-900 border border-indigo-100">
-                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-child"></i></span>
-                                <span>${escapeHtml(name)}</span>
-                            </div>
-                        `;
+                        return `<div class="flex items-center space-x-2.5 bg-indigo-50/80 p-3 rounded-2xl text-xs font-bold text-indigo-900 border border-indigo-100"><span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-child"></i></span><span>${escapeHtml(name)}</span></div>`;
                     }).join('');
                 }
             } else {
                 titleEl.innerText = "Riepilogo Sondaggio";
                 let summaryHtml = '';
                 const votesMap = poll.votes || {};
-
                 poll.options.forEach((optName, idx) => {
                     const namesList = votesMap[idx] || [];
                     const count = namesList.length;
@@ -783,7 +916,7 @@
                                 <span class="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-xl text-[11px] font-black">${count} voti</span>
                             </div>
                             <div class="flex flex-wrap gap-1.5 pt-1">
-                                ${count === 0 ? '<span class="text-xs text-slate-400 italic">Nessun voto registrato</span>' : namesList.map(n => {
+                                ${count === 0 ? '<span class="text-xs text-slate-400 italic">Nessun voto</span>' : namesList.map(n => {
                                     summaryTextForWA += `  - ${n}\n`;
                                     return `<span class="inline-flex items-center bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-xl text-xs font-bold shadow-2xs"><i class="fa-solid fa-child mr-1.5 text-indigo-600"></i>${escapeHtml(n)}</span>`;
                                 }).join('')}
@@ -795,14 +928,12 @@
             }
 
             summaryTextForWA += `\n🔗 *Vota direttamente qui:* ${appUrl}`;
-
             const encodedWA = encodeURIComponent(summaryTextForWA.trim());
             whatsappContainer.innerHTML = `
                 <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-200">
                     <i class="fa-brands fa-whatsapp text-base"></i><span>Condividi Riepilogo su WhatsApp</span>
                 </a>
             `;
-
             document.getElementById('votersModal').classList.remove('hidden');
         }
 
@@ -814,7 +945,9 @@
             if (confirm("Vuoi davvero eliminare questo elemento?")) {
                 const { db, ref, set } = window.fbDB;
                 delete dbData[section][id];
-                set(ref(db, 'classe3e'), dbData);
+                set(ref(db, 'classe3e'), dbData).then(() => {
+                    if(section === 'fondo') renderFondoChart();
+                });
             }
         }
 
@@ -871,32 +1004,27 @@
             
             const homeCDHtml = document.getElementById('homeCountdownContent');
             if (homeCDHtml) {
-                homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
+                homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${t.days <= 2 ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
             }
 
             const tabCDHtml = document.getElementById(`cd_timer_${latestCD.id}`);
             if (tabCDHtml) {
-                tabCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
+                tabCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${t.days <= 2 ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
             }
         }, 1000);
 
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
-            // --- Aggiornamento Box Riepilogo Compiti ---
             const compitiObj = dbData.compiti || {};
             const compitiArr = Object.values(compitiObj);
             const totalCompiti = compitiArr.length;
             const summaryTextEl = document.getElementById('homeworkSummaryText');
             if (summaryTextEl) {
-                if (totalCompiti === 0) {
-                    summaryTextEl.innerText = "Nessun compito registrato al momento.";
-                } else {
-                    summaryTextEl.innerText = `Ci sono ${totalCompiti} attività/compiti attivi nel diario di classe.`;
-                }
+                summaryTextEl.innerText = totalCompiti === 0 ? "Nessun compito registrato al momento." : `Ci sono ${totalCompiti} attività/compiti attivi nel diario di classe.`;
             }
 
-            // --- Countdown Home ---
+            // --- Countdown Scenografico con Modalità Urgenza ---
             const homeCountdownContainer = document.getElementById('homeCountdownBox');
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
             if (homeCountdownContainer) {
@@ -905,18 +1033,25 @@
                 } else {
                     const latestCD = countdownData.sort((a, b) => b.createdAt - a.createdAt)[0];
                     const t = latestCD.date ? getTimeRemaining(latestCD.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
-                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${latestCD.date ? 'Data evento: ' + new Date(latestCD.date).toLocaleString('it-IT') : ''}`);
+                    
+                    // Se mancano meno di 3 giorni, attiva lo stile Urgenza festoso/pulsante
+                    const isUrgent = t.days <= 2 && t.total > 0;
+                    const cardBg = isUrgent 
+                        ? 'bg-gradient-to-br from-rose-950 via-purple-950 to-indigo-950 border-rose-500/50 shadow-rose-900/40 animate-pulse' 
+                        : 'bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950 border-white/10';
+
+                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\n${isUrgent ? '🚨 MANCA POCHISSIMO! 🚨\n' : ''}Mancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${latestCD.date ? 'Data evento: ' + new Date(latestCD.date).toLocaleString('it-IT') : ''}`);
                     
                     homeCountdownContainer.innerHTML = `
-                    <div class="bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950 text-white p-6 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden mb-4 border border-white/10">
+                    <div class="${cardBg} text-white p-6 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden mb-4 border transition-all duration-500">
                         <div class="absolute -right-4 -bottom-4 text-white/5 text-9xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div class="space-y-2 z-10 flex-1 pr-3">
-                            <span class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 shadow-xs"><i class="fa-solid fa-hourglass-half text-emerald-400"></i> Conto alla Rovescia</span>
+                            <span class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 shadow-xs"><i class="fa-solid fa-hourglass-half ${isUrgent ? 'text-amber-400' : 'text-emerald-400'}"></i> ${isUrgent ? '⚠️ Meno di 3 giorni all\'evento!' : 'Conto alla Rovescia'}</span>
                             <h3 class="font-black text-lg text-white mt-1">${escapeHtml(latestCD.title)}</h3>
                             ${latestCD.date ? `<p class="text-xs text-indigo-200 font-medium flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i>${new Date(latestCD.date).toLocaleString('it-IT')}</p>` : ''}
                             ${latestCD.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(latestCD.details)}</p>` : ''}
                             <div class="pt-2 flex items-baseline space-x-2" id="homeCountdownContent">
-                                <span class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                                <span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
                             </div>
                         </div>
                         <div class="flex flex-col items-end space-y-2.5 z-10">
@@ -927,7 +1062,7 @@
                 }
             }
 
-            // Compiti (Con Badge "NUOVO" se inserito nelle ultime 24 ore)
+            // Compiti
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
                 const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegati: ' + item.fileUrl : ''}`);
@@ -1008,17 +1143,18 @@
             // Countdown (Scheda dedicata)
             renderCustomSection('countdown', 'list-countdown', item => {
                 const t = item.date ? getTimeRemaining(item.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
-                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
+                const isUrgent = t.days <= 2 && t.total > 0;
+                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\n${isUrgent ? '🚨 MANCA POCHISSIMO! 🚨\n' : ''}Mancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
                 return `
-                <div class="bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950 text-white p-6 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden border border-white/10">
+                <div class="${isUrgent ? 'bg-gradient-to-br from-rose-950 via-purple-950 to-indigo-950 border-rose-500/50 animate-pulse' : 'bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950 border-white/10'} text-white p-6 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden border">
                     <div class="absolute -right-4 -bottom-4 text-white/5 text-9xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div class="space-y-2 z-10 flex-1 pr-3">
-                        <span class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5">Countdown</span>
+                        <span class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5">${isUrgent ? '⚠️ In scadenza imminente' : 'Countdown'}</span>
                         <h3 class="font-black text-lg text-white mt-1">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-200 font-medium flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         <div class="pt-2 flex items-baseline space-x-2" id="cd_timer_${item.id}">
-                            <span class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                            <span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end space-y-2.5 z-10">
@@ -1028,16 +1164,14 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con condivisione WhatsApp mirata alla sezione sondaggi)
+            // Sondaggi Interattivi
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const optionsArr = item.options || [];
                 const votesMap = item.votes || {};
-                
                 let totalVotes = 0;
                 optionsArr.forEach((_, idx) => {
                     if (Array.isArray(votesMap[idx])) totalVotes += votesMap[idx].length;
                 });
-                
                 const currentVoter = activeVoterSession[item.id] || '';
                 
                 let optionsHtml = '';
@@ -1045,24 +1179,15 @@
                     const namesList = votesMap[idx] || [];
                     const count = namesList.length;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                    
-                    const voteButtonClass = !currentVoter 
-                        ? 'opacity-40 cursor-not-allowed bg-slate-300 text-slate-600' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer hover:scale-[1.01] active:scale-95';
+                    const voteButtonClass = !currentVoter ? 'opacity-40 cursor-not-allowed bg-slate-300 text-slate-600' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer hover:scale-[1.01] active:scale-95';
 
                     optionsHtml += `
                         <div class="space-y-3 bg-slate-50/80 p-4.5 rounded-2xl border border-slate-200/70 transition hover:border-slate-300">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
                                 <span class="font-black text-slate-900 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                                    <button onclick="votePoll('${item.id}', ${idx})" 
-                                        class="${voteButtonClass} px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
-                                        ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
-                                        <i class="fa-solid fa-check mr-1.5"></i> Vota
-                                    </button>
-                                    <button onclick="showVotersModal('${item.id}', ${idx})" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center shadow-2xs">
-                                        <i class="fa-solid fa-list mr-1.5 text-indigo-600"></i> Votanti (${count})
-                                    </button>
+                                    <button onclick="votePoll('${item.id}', ${idx})" class="${voteButtonClass} px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center" ${!currentVoter ? 'title="Inserisci prima il nome"' : ''}><i class="fa-solid fa-check mr-1.5"></i> Vota</button>
+                                    <button onclick="showVotersModal('${item.id}', ${idx})" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center shadow-2xs"><i class="fa-solid fa-list mr-1.5 text-indigo-600"></i> Votanti (${count})</button>
                                 </div>
                             </div>
                             <div class="w-full bg-slate-200/80 h-3 rounded-full overflow-hidden p-0.5 shadow-inner">
@@ -1080,39 +1205,26 @@
                 const appUrl = cleanBaseUrl + '#sondaggi';
                 const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}\n\n🔗 *Vota o consulta qui:* ${appUrl}`);
 
-                let voterSectionHtml = '';
-                if (!currentVoter) {
-                    voterSectionHtml = `
-                        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center gap-3">
-                            <div class="flex items-center space-x-3 w-full">
-                                <div class="bg-indigo-600 text-white w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-md shadow-indigo-200">
-                                    <i class="fa-solid fa-child"></i>
-                                </div>
-                                <input type="text" id="voterInput_${item.id}" placeholder="Nome e cognome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                            </div>
-                            <button onclick="validateVoter('${item.id}')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-md shadow-emerald-200 whitespace-nowrap flex items-center justify-center">
-                                <i class="fa-solid fa-check-to-slot mr-1.5"></i> Conferma Nome
-                            </button>
+                let voterSectionHtml = !currentVoter ? `
+                    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center gap-3">
+                        <div class="flex items-center space-x-3 w-full">
+                            <div class="bg-indigo-600 text-white w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-md shadow-indigo-200"><i class="fa-solid fa-child"></i></div>
+                            <input type="text" id="voterInput_${item.id}" placeholder="Nome e cognome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                         </div>
-                    `;
-                } else {
-                    voterSectionHtml = `
-                        <div class="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 flex justify-between items-center shadow-2xs">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-600 text-white w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-md shadow-emerald-200">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <div class="text-xs">
-                                    <span class="text-slate-500 block font-medium">Stai votando per:</span>
-                                    <span class="font-black text-emerald-950 text-sm">${escapeHtml(currentVoter)}</span>
-                                </div>
+                        <button onclick="validateVoter('${item.id}')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-md shadow-emerald-200 whitespace-nowrap flex items-center justify-center"><i class="fa-solid fa-check-to-slot mr-1.5"></i> Conferma Nome</button>
+                    </div>
+                ` : `
+                    <div class="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 flex justify-between items-center shadow-2xs">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-emerald-600 text-white w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-md shadow-emerald-200"><i class="fa-solid fa-check"></i></div>
+                            <div class="text-xs">
+                                <span class="text-slate-500 block font-medium">Stai votando per:</span>
+                                <span class="font-black text-emerald-950 text-sm">${escapeHtml(currentVoter)}</span>
                             </div>
-                            <button onclick="resetVoter('${item.id}')" class="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs">
-                                Cambia nome
-                            </button>
                         </div>
-                    `;
-                }
+                        <button onclick="resetVoter('${item.id}')" class="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs">Cambia nome</button>
+                    </div>
+                `;
 
                 return `
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200/80 space-y-4 transition hover:shadow-md">
@@ -1127,17 +1239,10 @@
                             ${getAdminButtons('sondaggi', item.id)}
                         </div>
                     </div>
-                    
                     ${voterSectionHtml}
-
-                    <div class="space-y-3 pt-1">
-                        ${optionsHtml}
-                    </div>
-
+                    <div class="space-y-3 pt-1">${optionsHtml}</div>
                     <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                        <button onclick="showVotersModal('${item.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-2xs">
-                            <i class="fa-solid fa-chart-pie text-indigo-600"></i><span>Visualizza Riepilogo Voti</span>
-                        </button>
+                        <button onclick="showVotersModal('${item.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-2xs"><i class="fa-solid fa-chart-pie text-indigo-600"></i><span>Visualizza Riepilogo Voti</span></button>
                         <div class="text-xs font-black text-slate-600">Totale votanti: <span class="text-indigo-700 text-sm bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 ml-1">${totalVotes}</span></div>
                     </div>
                 </div>`;
@@ -1222,9 +1327,7 @@
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-center transition hover:shadow-md hover:border-slate-300">
                     <div class="flex items-center space-x-3.5">
-                        <div class="bg-gradient-to-br from-pink-100 to-rose-100 text-pink-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shadow-inner border border-pink-200/60">
-                            <i class="fa-solid fa-cake-candles"></i>
-                        </div>
+                        <div class="bg-gradient-to-br from-pink-100 to-rose-100 text-pink-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shadow-inner border border-pink-200/60"><i class="fa-solid fa-cake-candles"></i></div>
                         <div>
                             <h4 class="font-black text-slate-900 text-sm">${escapeHtml(item.title)}</h4>
                             ${item.details ? `<p class="text-xs text-pink-600 font-bold mt-0.5 flex items-center gap-1"><i class="fa-regular fa-star"></i>${escapeHtml(item.details)}</p>` : ''}
