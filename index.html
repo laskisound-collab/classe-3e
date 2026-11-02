@@ -730,6 +730,7 @@
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
             const whatsappContainer = document.getElementById('modalWhatsAppContainer');
+            const appUrl = window.location.href;
 
             let summaryTextForWA = `📊 *Sondaggio 3E: ${poll.title}*\n\n`;
 
@@ -741,7 +742,7 @@
                 summaryTextForWA += `*Opzione:* ${optName}\n*Votanti (${namesList.length}):*\n`;
                 if (namesList.length === 0) {
                     contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4 font-medium">Nessuna adesione per questa opzione.</p>`;
-                    summaryTextForWA += `Nessun voto registrato.`;
+                    summaryTextForWA += `Nessun voto registrato.\n`;
                 } else {
                     contentEl.innerHTML = namesList.map(name => {
                         summaryTextForWA += `- ${name}\n`;
@@ -778,8 +779,9 @@
                     `;
                 });
                 contentEl.innerHTML = summaryHtml || `<p class="text-slate-400 text-xs text-center py-4 font-medium">Nessun voto registrato finora.</p>`;
-                summaryTextForWA += `\nPartecipa votando sulla Web App della classe!`;
             }
+
+            summaryTextForWA += `\n🔗 *Vota o consulta qui:* ${appUrl}`;
 
             const encodedWA = encodeURIComponent(summaryTextForWA.trim());
             whatsappContainer.innerHTML = `
@@ -1013,7 +1015,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi
+            // Sondaggi Interattivi (Con condivisione WhatsApp inclusiva di link)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const optionsArr = item.options || [];
                 const votesMap = item.votes || {};
@@ -1061,7 +1063,8 @@
                     `;
                 });
 
-                const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}`);
+                const appUrl = window.location.href;
+                const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}\n\n🔗 *Vota o consulta qui:* ${appUrl}`);
 
                 let voterSectionHtml = '';
                 if (!currentVoter) {
