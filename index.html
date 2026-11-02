@@ -76,6 +76,9 @@
             <button onclick="switchTab('compiti')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-indigo-600 bg-indigo-50 shadow-sm whitespace-nowrap transition flex items-center space-x-2" data-tab="compiti"><i class="fa-solid fa-book-open"></i><span>Compiti</span></button>
             <button onclick="switchTab('orario')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="orario"><i class="fa-solid fa-calendar-days"></i><span>Orario</span></button>
             <button onclick="switchTab('mensa')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="mensa"><i class="fa-solid fa-utensils"></i><span>Menu Mensa</span></button>
+            <button onclick="switchTab('libri')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="libri"><i class="fa-solid fa-book"></i><span>Libri & Materiale</span></button>
+            <button onclick="switchTab('countdown')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="countdown"><i class="fa-solid fa-hourglass-half"></i><span>Countdown</span></button>
+            <button onclick="switchTab('sondaggi')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="sondaggi"><i class="fa-solid fa-square-poll-vertical"></i><span>Sondaggi</span></button>
             <button onclick="switchTab('fondo')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="fondo"><i class="fa-solid fa-wallet"></i><span>Fondo Cassa</span></button>
             <button onclick="switchTab('avvisi')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="avvisi"><i class="fa-solid fa-bullhorn"></i><span>Avvisi</span></button>
             <button onclick="switchTab('galleria')" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100 whitespace-nowrap transition flex items-center space-x-2" data-tab="galleria"><i class="fa-solid fa-images"></i><span>Foto & Video</span></button>
@@ -141,6 +144,48 @@
                 </button>
             </div>
             <div id="list-mensa" class="space-y-3.5"></div>
+        </section>
+
+        <!-- SEZIONE LIBRI & MATERIALE -->
+        <section id="libri" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Libri di Testo & Materiale Scolastico</h2>
+                    <p class="text-xs text-slate-500 font-medium">Elenchi libri adottati e materiali consigliati (PDF e link)</p>
+                </div>
+                <button onclick="openAddModal('libri')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Libro / Materiale</span>
+                </button>
+            </div>
+            <div id="list-libri" class="space-y-3.5"></div>
+        </section>
+
+        <!-- SEZIONE COUNTDOWN -->
+        <section id="countdown" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Conto alla Rovescia</h2>
+                    <p class="text-xs text-slate-500 font-medium">Eventi importanti, gite e fine scuola</p>
+                </div>
+                <button onclick="openAddModal('countdown')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Nuovo Countdown</span>
+                </button>
+            </div>
+            <div id="list-countdown" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- SEZIONE SONDAGGI -->
+        <section id="sondaggi" class="tab-content space-y-4">
+            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sondaggi e Votazioni</h2>
+                    <p class="text-xs text-slate-500 font-medium">Esprimi la tua preferenza sulle attività di classe</p>
+                </div>
+                <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
+                </button>
+            </div>
+            <div id="list-sondaggi" class="space-y-4"></div>
         </section>
 
         <!-- SEZIONE FONDO CASSA -->
@@ -302,7 +347,7 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, orario: {}, mensa: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
+        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -311,7 +356,7 @@
             onValue(dataRef, (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
-                    dbData = val;
+                    dbData = { ...dbData, ...val };
                 }
                 renderAll();
             });
@@ -371,7 +416,9 @@
                 el.classList.add('text-slate-600', 'hover:bg-slate-100');
             });
 
-            document.getElementById(tabId).classList.add('active');
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+
             const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
             if (activeBtn) {
                 activeBtn.classList.add('text-indigo-600', 'bg-indigo-50', 'shadow-sm');
@@ -393,7 +440,6 @@
             const saveBtn = document.getElementById('saveBtn');
 
             if (itemId && dbData[section] && dbData[section][itemId]) {
-                // Modalità Modifica
                 const item = dbData[section][itemId];
                 modalTitle.innerText = "Modifica " + section.toUpperCase();
                 saveBtn.innerText = "Salva Modifiche";
@@ -403,7 +449,6 @@
                 document.getElementById('inputDetails').value = item.details || '';
                 document.getElementById('inputFileUrl').value = item.fileUrl || '';
             } else {
-                // Modalità Nuovo
                 modalTitle.innerText = "Aggiungi a " + section.toUpperCase();
                 saveBtn.innerText = "Pubblica";
             }
@@ -426,6 +471,24 @@
                 labelTitle.innerText = "Titolo Menu (Es. Menu Scolastico - Settimana A)";
                 labelDetails.innerText = "Note o indicazioni (opzionale)";
                 labelFileUrl.innerText = "Link PDF o Foto del Menu (Google Drive, ecc.)";
+            } else if (section === 'libri') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Titolo Libro o Lista Materiale (Es. Elenco Libri Classe 3E)";
+                labelDetails.innerText = "Descrizione o note aggiuntive (opzionale)";
+                labelFileUrl.innerText = "Link PDF del libro/materiale (Google Drive, ecc.)";
+            } else if (section === 'countdown') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.remove('hidden');
+                labelTitle.innerText = "Nome Evento (Es. Fine della Scuola ☀️)";
+                labelDetails.innerText = "Descrizione breve (opzionale)";
+                labelFileUrl.innerText = "Link immagine o allegato (opzionale)";
+            } else if (section === 'sondaggi') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Domanda del Sondaggio (Es. Dove facciamo la gita?)";
+                labelDetails.innerText = "Opzioni di voto (inseriscine una per riga)";
+                labelFileUrl.innerText = "Link o note (opzionale)";
             } else if (section === 'compleanni') {
                 materiaWrapper.classList.add('hidden');
                 dateWrapper.classList.add('hidden');
@@ -467,7 +530,7 @@
             const idToUse = itemId ? itemId : ('item_' + Date.now());
             const createdAtTime = (itemId && dbData[section][itemId]) ? dbData[section][itemId].createdAt : Date.now();
 
-            dbData[section][idToUse] = {
+            let itemData = {
                 id: idToUse,
                 title,
                 materia: section === 'compiti' ? materia : '',
@@ -477,6 +540,20 @@
                 createdAt: createdAtTime
             };
 
+            // Se è un sondaggio e viene creato da zero, inizializziamo i voti
+            if (section === 'sondaggi' && (!itemId || !dbData[section][itemId].votes)) {
+                const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                let votes = {};
+                options.forEach(opt => { votes[opt] = 0; });
+                itemData.votes = votes;
+                itemData.votedUsers = {}; // per tracciare chi ha votato (opzionale)
+            } else if (itemId && dbData[section][itemId] && dbData[section][itemId].votes) {
+                itemData.votes = dbData[section][itemId].votes;
+                itemData.votedUsers = dbData[section][itemId].votedUsers || {};
+            }
+
+            dbData[section][idToUse] = itemData;
+
             set(ref(db, 'classe3e'), dbData).then(() => {
                 closeAddModal();
                 saveBtn.innerText = "Pubblica";
@@ -485,6 +562,23 @@
                 alert('Errore di salvataggio: ' + err.message);
                 saveBtn.innerText = "Pubblica";
                 saveBtn.disabled = false;
+            });
+        }
+
+        function votePoll(pollId, optionName) {
+            const { db, ref, set } = window.fbDB;
+            if (!dbData.sondaggi || !dbData.sondaggi[pollId]) return;
+
+            let poll = dbData.sondaggi[pollId];
+            if (!poll.votes) poll.votes = {};
+
+            // Incrementa il voto per l'opzione scelta
+            poll.votes[optionName] = (poll.votes[optionName] || 0) + 1;
+
+            set(ref(db, 'classe3e'), dbData).then(() => {
+                renderAll();
+            }).catch(err => {
+                alert('Errore nella votazione: ' + err.message);
             });
         }
 
@@ -505,7 +599,7 @@
             return urls.map((url, index) => `
                 <div class="pt-1 inline-block mr-2 mb-1">
                     <a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2 rounded-2xl font-bold transition">
-                        <i class="fa-solid fa-paperclip"></i><span>Allegato ${urls.length > 1 ? (index + 1) : 'File'}</span>
+                        <i class="fa-solid fa-file-pdf"></i><span>Allegato ${urls.length > 1 ? (index + 1) : 'File'}</span>
                     </a>
                 </div>
             `).join('');
@@ -575,6 +669,103 @@
                         <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi Menu su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('mensa', item.id)}
                     </div>
+                </div>`;
+            });
+
+            // Libri & Materiale
+            renderCustomSection('libri', 'list-libri', item => {
+                const waText = encodeURIComponent(`📚 *Libri e Materiale 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link PDF/Materiale: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
+                    <div class="space-y-2 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-block bg-sky-50 text-sky-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-book mr-1"></i> Libri & Materiale</span>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${getAdminButtons('libri', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Countdown (Conto alla rovescia dinamico)
+            renderCustomSection('countdown', 'list-countdown', item => {
+                let diffDays = "Scaduto";
+                if (item.date) {
+                    const eventDate = new Date(item.date);
+                    const now = new Date();
+                    const diffTime = eventDate - now;
+                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) diffDays = 0;
+                }
+                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${diffDays} giorni!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
+                return `
+                <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div class="space-y-2 z-10 flex-1 pr-3">
+                        <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Countdown</span>
+                        <h3 class="font-black text-lg text-white">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        <div class="pt-2 flex items-baseline space-x-2">
+                            <span class="text-3xl font-black text-emerald-400">${diffDays >= 0 ? diffDays : 0}</span>
+                            <span class="text-xs font-bold text-indigo-200 uppercase tracking-wide">giorni all'evento</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end space-y-2 z-10">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-2xl transition shadow-md" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${isAdmin ? `<div class="bg-white/10 p-1.5 rounded-2xl">${getAdminButtons('countdown', item.id)}</div>` : ''}
+                    </div>
+                </div>`;
+            });
+
+            // Sondaggi Interattivi
+            renderCustomSection('sondaggi', 'list-sondaggi', item => {
+                const votes = item.votes || {};
+                const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+                
+                let optionsHtml = '';
+                for (const [optionName, count] of Object.entries(votes)) {
+                    const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    optionsHtml += `
+                        <div class="space-y-1 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                                <span class="flex items-center">
+                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-xl mr-2.5 transition shadow-sm">Vota</button>
+                                    ${escapeHtml(optionName)}
+                                </span>
+                                <span class="text-indigo-600 font-black">${count} voti (${percentage}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}`);
+
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-4 transition hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <span class="inline-block bg-purple-50 text-purple-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-square-poll-vertical mr-1"></i> Sondaggio Attivo</span>
+                            <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                            ${item.details ? `<p class="text-xs text-slate-500 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                            ${getAdminButtons('sondaggi', item.id)}
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-1">
+                        ${optionsHtml}
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-bold text-right">Totale partecipanti: ${totalVotes}</div>
                 </div>`;
             });
 
