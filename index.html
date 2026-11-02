@@ -93,7 +93,6 @@
         
         <!-- SEZIONE COMPITI (HOME) -->
         <section id="compiti" class="tab-content active space-y-4">
-            <!-- Box Conto alla Rovescia in Evidenza sulla Home -->
             <div id="homeCountdownBox"></div>
 
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 gap-3">
@@ -437,153 +436,7 @@
             const target = document.getElementById(tabId);
             if (target) target.classList.add('active');
 
-            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
-            if (activeBtn) {
-                activeBtn.classList.add('text-indigo-600', 'bg-indigo-50', 'shadow-sm');
-                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
-            }
-        }
-
-        function openAddModal(section, itemId = null) {
-            document.getElementById('currentSection').value = section;
-            document.getElementById('editItemId').value = itemId || '';
-            document.getElementById('dataForm').reset();
-            
-            const materiaWrapper = document.getElementById('materiaWrapper');
-            const dateWrapper = document.getElementById('dateWrapper');
-            const labelTitle = document.getElementById('labelTitle');
-            const labelDetails = document.getElementById('labelDetails');
-            const labelFileUrl = document.getElementById('labelFileUrl');
-            const modalTitle = document.getElementById('modalTitle');
-            const saveBtn = document.getElementById('saveBtn');
-
-            if (itemId && dbData[section] && dbData[section][itemId]) {
-                const item = dbData[section][itemId];
-                modalTitle.innerText = "Modifica " + section.toUpperCase();
-                saveBtn.innerText = "Salva Modifiche";
-                document.getElementById('inputTitle').value = item.title || '';
-                if (section === 'compiti') document.getElementById('inputMateria').value = item.materia || 'Italiano';
-                document.getElementById('inputDate').value = item.date || '';
-                document.getElementById('inputDetails').value = item.details || '';
-                document.getElementById('inputFileUrl').value = item.fileUrl || '';
-            } else {
-                modalTitle.innerText = "Aggiungi a " + section.toUpperCase();
-                saveBtn.innerText = "Pubblica";
-            }
-
-            if (section === 'compiti' || section === 'avvisi') {
-                materiaWrapper.classList.toggle('hidden', section !== 'compiti');
-                dateWrapper.classList.remove('hidden');
-                labelTitle.innerText = "Titolo / Argomento";
-                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
-                labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
-            } else if (section === 'orario') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Giorno della settimana (Es. Lunedì)";
-                labelDetails.innerText = "Materie della giornata (separate da virgola o elenco)";
-                labelFileUrl.innerText = "Eventuale link allegato (opzionale)";
-            } else if (section === 'mensa') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Titolo Menu (Es. Menu Scolastico - Settimana A)";
-                labelDetails.innerText = "Note o indicazioni (opzionale)";
-                labelFileUrl.innerText = "Link PDF o Foto del Menu (Google Drive, ecc.)";
-            } else if (section === 'libri') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Titolo Libro o Lista Materiale (Es. Elenco Libri Classe 3E)";
-                labelDetails.innerText = "Descrizione o note aggiuntive (opzionale)";
-                labelFileUrl.innerText = "Link PDF del libro/materiale (Google Drive, ecc.)";
-            } else if (section === 'countdown') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.remove('hidden');
-                labelTitle.innerText = "Nome Evento (Es. Fine della Scuola ☀️)";
-                labelDetails.innerText = "Descrizione breve (opzionale)";
-                labelFileUrl.innerText = "Link immagine o allegato (opzionale)";
-            } else if (section === 'sondaggi') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Domanda del Sondaggio (Es. Dove facciamo la gita?)";
-                labelDetails.innerText = "Opzioni di voto (inseriscine una per riga)";
-                labelFileUrl.innerText = "Link o note (opzionale)";
-            } else if (section === 'compleanni') {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.add('hidden');
-                labelTitle.innerText = "Nome del bambino / bambina";
-                labelDetails.innerText = "Data del compleanno (Es. 15 Settembre)";
-                labelFileUrl.innerText = "Link foto o auguri (opzionale)";
-            } else {
-                materiaWrapper.classList.add('hidden');
-                dateWrapper.classList.remove('hidden');
-                labelTitle.innerText = "Titolo / Argomento";
-                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
-                labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
-            }
-
-            document.getElementById('dataModal').classList.remove('hidden');
-        }
-
-        function closeAddModal() {
-            document.getElementById('dataModal').classList.add('hidden');
-        }
-
-        function saveData(e) {
-            e.preventDefault();
-            const section = document.getElementById('currentSection').value;
-            const itemId = document.getElementById('editItemId').value;
-            const title = document.getElementById('inputTitle').value;
-            const materia = document.getElementById('inputMateria').value;
-            const date = document.getElementById('inputDate').value;
-            const details = document.getElementById('inputDetails').value;
-            const fileUrl = document.getElementById('inputFileUrl').value;
-
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerText = "Salvataggio in corso...";
-            saveBtn.disabled = true;
-
-            const { db, ref, set } = window.fbDB;
-            if (!dbData[section]) dbData[section] = {};
-            
-            const idToUse = itemId ? itemId : ('item_' + Date.now());
-            const createdAtTime = (itemId && dbData[section][itemId]) ? dbData[section][itemId].createdAt : Date.now();
-
-            let itemData = {
-                id: idToUse,
-                title,
-                materia: section === 'compiti' ? materia : '',
-                date,
-                details,
-                fileUrl,
-                createdAt: createdAtTime
-            };
-
-            if (section === 'sondaggi') {
-                if (!itemId || !dbData[section][itemId].votes) {
-                    const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-                    let votes = {};
-                    options.forEach(opt => { votes[opt] = []; });
-                    itemData.votes = votes;
-                } else {
-                    itemData.votes = dbData[section][itemId].votes;
-                }
-            }
-
-            dbData[section][idToUse] = itemData;
-
-            set(ref(db, 'classe3e'), dbData).then(() => {
-                closeAddModal();
-                saveBtn.innerText = "Pubblica";
-                saveBtn.disabled = false;
-            }).catch(err => {
-                alert('Errore di salvataggio: ' + err.message);
-                saveBtn.innerText = "Pubblica";
-                saveBtn.disabled = false;
-            });
-        }
-
-        function validateVoter(pollId) {
-            const inputEl = document.getElementById(`voterInput_${pollId}`);
+            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`); if (activeBtn) { activeBtn.classList.add('text-indigo-600', 'bg-indigo-50', 'shadow-sm'); activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100'); } }  function openAddModal(section, itemId = null) { document.getElementById('currentSection').value = section; document.getElementById('editItemId').value = itemId \vert{}\vert{} ''; document.getElementById('dataForm').reset();  const materiaWrapper = document.getElementById('materiaWrapper'); const dateWrapper = document.getElementById('dateWrapper'); const labelTitle = document.getElementById('labelTitle'); const labelDetails = document.getElementById('labelDetails'); const labelFileUrl = document.getElementById('labelFileUrl'); const modalTitle = document.getElementById('modalTitle'); const saveBtn = document.getElementById('saveBtn');  if (itemId && dbData[section] && dbData[section][itemId]) { const item = dbData[section][itemId]; modalTitle.innerText = "Modifica " + section.toUpperCase(); saveBtn.innerText = "Salva Modifiche"; document.getElementById('inputTitle').value = item.title \vert{}\vert{} ''; if (section === 'compiti') document.getElementById('inputMateria').value = item.materia \vert{}\vert{} 'Italiano'; document.getElementById('inputDate').value = item.date \vert{}\vert{} ''; document.getElementById('inputDetails').value = item.details \vert{}\vert{} ''; document.getElementById('inputFileUrl').value = item.fileUrl \vert{}\vert{} ''; } else { modalTitle.innerText = "Aggiungi a " + section.toUpperCase(); saveBtn.innerText = "Pubblica"; }  if (section === 'compiti' \vert{}\vert{} section === 'avvisi') { materiaWrapper.classList.toggle('hidden', section !== 'compiti'); dateWrapper.classList.remove('hidden'); labelTitle.innerText = "Titolo / Argomento"; labelDetails.innerText = "Dettagli / Testo aggiuntivo"; labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)"; } else if (section === 'orario') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.add('hidden'); labelTitle.innerText = "Giorno della settimana (Es. Lunedì)"; labelDetails.innerText = "Materie della giornata (separate da virgola o elenco)"; labelFileUrl.innerText = "Eventuale link allegato (opzionale)"; } else if (section === 'mensa') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.add('hidden'); labelTitle.innerText = "Titolo Menu (Es. Menu Scolastico - Settimana A)"; labelDetails.innerText = "Note o indicazioni (opzionale)"; labelFileUrl.innerText = "Link PDF o Foto del Menu (Google Drive, ecc.)"; } else if (section === 'libri') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.add('hidden'); labelTitle.innerText = "Titolo Libro o Lista Materiale (Es. Elenco Libri Classe 3E)"; labelDetails.innerText = "Descrizione o note aggiuntive (opzionale)"; labelFileUrl.innerText = "Link PDF del libro/materiale (Google Drive, ecc.)"; } else if (section === 'countdown') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.remove('hidden'); labelTitle.innerText = "Nome Evento (Es. Fine della Scuola ☀️)"; labelDetails.innerText = "Descrizione breve (opzionale)"; labelFileUrl.innerText = "Link immagine o allegato (opzionale)"; } else if (section === 'sondaggi') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.add('hidden'); labelTitle.innerText = "Domanda del Sondaggio (Es. Dove facciamo la gita?)"; labelDetails.innerText = "Opzioni di voto (inseriscine una per riga)"; labelFileUrl.innerText = "Link o note (opzionale)"; } else if (section === 'compleanni') { materiaWrapper.classList.add('hidden'); dateWrapper.classList.add('hidden'); labelTitle.innerText = "Nome del bambino / bambina"; labelDetails.innerText = "Data del compleanno (Es. 15 Settembre)"; labelFileUrl.innerText = "Link foto o auguri (opzionale)"; } else { materiaWrapper.classList.add('hidden'); dateWrapper.classList.remove('hidden'); labelTitle.innerText = "Titolo / Argomento"; labelDetails.innerText = "Dettagli / Testo aggiuntivo"; labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)"; }  document.getElementById('dataModal').classList.remove('hidden'); }  function closeAddModal() { document.getElementById('dataModal').classList.add('hidden'); }  function saveData(e) { e.preventDefault(); const section = document.getElementById('currentSection').value; const itemId = document.getElementById('editItemId').value; const title = document.getElementById('inputTitle').value; const materia = document.getElementById('inputMateria').value; const date = document.getElementById('inputDate').value; const details = document.getElementById('inputDetails').value; const fileUrl = document.getElementById('inputFileUrl').value;  const saveBtn = document.getElementById('saveBtn'); saveBtn.innerText = "Salvataggio in corso..."; saveBtn.disabled = true;  const { db, ref, set } = window.fbDB; if (!dbData[section]) dbData[section] = {};  const idToUse = itemId ? itemId : ('item_' + Date.now()); const createdAtTime = (itemId && dbData[section][itemId]) ? dbData[section][itemId].createdAt : Date.now();  let itemData = { id: idToUse, title, materia: section === 'compiti' ? materia : '', date, details, fileUrl, createdAt: createdAtTime };  if (section === 'sondaggi') { if (!itemId \vert{}\vert{} !dbData[section][itemId].votes) { const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0); let votes = {}; options.forEach(opt => { votes[opt] = []; }); itemData.votes = votes; } else { itemData.votes = dbData[section][itemId].votes; } }  dbData[section][idToUse] = itemData;  set(ref(db, 'classe3e'), dbData).then(() => { closeAddModal(); saveBtn.innerText = "Pubblica"; saveBtn.disabled = false; }).catch(err => { alert('Errore di salvataggio: ' + err.message); saveBtn.innerText = "Pubblica"; saveBtn.disabled = false; }); }  function validateVoter(pollId) { const inputEl = document.getElementById(`voterInput_${pollId}`);
             const nameValue = inputEl ? inputEl.value.trim() : '';
 
             if (!nameValue) {
@@ -715,12 +568,9 @@
             
             const homeCDHtml = document.getElementById('homeCountdownContent');
             if (homeCDHtml) {
-                homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
-            }
-
-            const tabCDHtml = document.getElementById(`cd_timer_${latestCD.id}`);
+                homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h${t.minutes}m ${t.seconds}s</span>`; }  const tabCDHtml = document.getElementById(`cd_timer_${latestCD.id}`);
             if (tabCDHtml) {
-                tabCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
+                tabCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g${t.hours}h ${t.minutes}m${t.seconds}s</span>`;
             }
         }, 1000);
 
@@ -736,18 +586,17 @@
                 } else {
                     const latestCD = countdownData.sort((a, b) => b.createdAt - a.createdAt)[0];
                     const t = latestCD.date ? getTimeRemaining(latestCD.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
-                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${latestCD.date ? 'Data evento: ' + new Date(latestCD.date).toLocaleString('it-IT') : ''}`);
+                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\nMancano ${t.days} giorni,${t.hours} ore e ${t.minutes} minuti!\n${latestCD.date ? 'Data evento: ' + new Date(latestCD.date).toLocaleString('it-IT') : ''}`);
                     
                     homeCountdownContainer.innerHTML = `
                     <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden mb-4">
                         <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div class="space-y-2 z-10 flex-1 pr-3">
                             <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-hourglass-half mr-1"></i> Conto alla Rovescia</span>
-                            <h3 class="font-black text-lg text-white">${escapeHtml(latestCD.title)}</h3>
-                            ${latestCD.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(latestCD.date).toLocaleString('it-IT')}</p>` : ''}
+                            <h3 class="font-black text-lg text-white">${escapeHtml(latestCD.title)}</h3>${latestCD.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(latestCD.date).toLocaleString('it-IT')}</p>` : ''}
                             ${latestCD.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(latestCD.details)}</p>` : ''}
                             <div class="pt-2 flex items-baseline space-x-2" id="homeCountdownContent">
-                                <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                                <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g${t.hours}h ${t.minutes}m${t.seconds}s</span>
                             </div>
                         </div>
                         <div class="flex flex-col items-end space-y-2 z-10">
@@ -766,8 +615,7 @@
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2 flex-1">
                         <span class="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">${escapeHtml(item.materia || 'Compito')}</span>
-                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-indigo-600 font-bold"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>${item.date ? `<p class="text-xs text-indigo-600 font-bold"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
@@ -783,11 +631,9 @@
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-2.5 flex flex-col justify-between transition hover:shadow-md">
                     <div>
                         <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <h4 class="font-extrabold text-xs uppercase tracking-wider text-indigo-600">${escapeHtml(item.title)}</h4>
-                            ${getAdminButtons('orario', item.id)}
+                            <h4 class="font-extrabold text-xs uppercase tracking-wider text-indigo-600">${escapeHtml(item.title)}</h4>${getAdminButtons('orario', item.id)}
                         </div>
-                        <p class="text-xs text-slate-600 font-medium mt-2.5 whitespace-pre-line leading-relaxed">${escapeHtml(item.details)}</p>
-                        ${renderMultipleLinks(item.fileUrl)}
+                        <p class="text-xs text-slate-600 font-medium mt-2.5 whitespace-pre-line leading-relaxed">${escapeHtml(item.details)}</p>${renderMultipleLinks(item.fileUrl)}
                     </div>
                 </div>
             `);
@@ -801,8 +647,7 @@
                         <div class="flex items-center space-x-2">
                             <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-utensils mr-1"></i> Mensa</span>
                         </div>
-                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
-                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2">
@@ -821,8 +666,7 @@
                         <div class="flex items-center space-x-2">
                             <span class="inline-block bg-sky-50 text-sky-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-book mr-1"></i> Libri & Materiale</span>
                         </div>
-                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
-                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2">
@@ -835,17 +679,16 @@
             // Countdown (Scheda dedicata)
             renderCustomSection('countdown', 'list-countdown', item => {
                 const t = item.date ? getTimeRemaining(item.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
-                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
+                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${t.days} giorni,${t.hours} ore e ${t.minutes} minuti!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
                 return `
                 <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div class="space-y-2 z-10 flex-1 pr-3">
                         <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Countdown</span>
-                        <h3 class="font-black text-lg text-white">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        <h3 class="font-black text-lg text-white">${escapeHtml(item.title)}</h3>${item.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         <div class="pt-2 flex items-baseline space-x-2" id="cd_timer_${item.id}">
-                            <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                            <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g${t.hours}h ${t.minutes}m${t.seconds}s</span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end space-y-2 z-10">
@@ -855,7 +698,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con validazione nome preventiva)
+            // Sondaggi Interattivi (Con validazione nome e pulsanti correttamente visibili)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -870,20 +713,20 @@
                     const count = Array.isArray(namesList) ? namesList.length : 0;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                     
-                    const voteButtonDisabledClass = !currentVoter ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm';
+                    const voteButtonDisabledClass = !currentVoter ? 'opacity-40 cursor-not-allowed bg-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm cursor-pointer';
                     
                     optionsHtml += `
-                        <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" 
-                                        class="${voteButtonDisabledClass} text-white px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"
+                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" 
+                                        class="${voteButtonDisabledClass} text-white px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
                                         ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
-                                        <i class="fa-solid fa-check mr-1"></i> Vota qui
+                                        <i class="fa-solid fa-check mr-1.5"></i> Vota qui
                                     </button>
-                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName)}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap">
-                                        <i class="fa-solid fa-list mr-1"></i> Elenco (${count})
+                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
+                                        <i class="fa-solid fa-list mr-1.5"></i> Elenco (${count})
                                     </button>
                                 </div>
                             </div>
@@ -898,7 +741,7 @@
                     `;
                 }
 
-                const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}`);
+                const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti:${totalVotes}`);
 
                 let voterSectionHtml = '';
                 if (!currentVoter) {
@@ -910,186 +753,4 @@
                                 </div>
                                 <input type="text" id="voterInput_${item.id}" placeholder="Nome e cognome del bambino/a..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                             </div>
-                            <button onclick="validateVoter('${item.id}')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap">
-                                <i class="fa-solid fa-check-to-slot mr-1"></i> Conferma Nome
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    voterSectionHtml = `
-                        <div class="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 flex justify-between items-center">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="bg-emerald-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <div class="text-xs">
-                                    <span class="text-slate-500 block font-medium">Stai votando per:</span>
-                                    <span class="font-extrabold text-emerald-900 text-sm">${escapeHtml(currentVoter)}</span>
-                                </div>
-                            </div>
-                            <button onclick="resetVoter('${item.id}')" class="bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
-                                Cambia nome
-                            </button>
-                        </div>
-                    `;
-                }
-
-                return `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-4 transition hover:shadow-md">
-                    <div class="flex justify-between items-start">
-                        <div class="space-y-1">
-                            <span class="inline-block bg-purple-50 text-purple-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-square-poll-vertical mr-1"></i> Sondaggio Attivo</span>
-                            <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
-                            ${item.details ? `<p class="text-xs text-slate-500 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
-                            ${getAdminButtons('sondaggi', item.id)}
-                        </div>
-                    </div>
-                    
-                    ${voterSectionHtml}
-
-                    <div class="space-y-2.5 pt-1">
-                        ${optionsHtml}
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-bold text-right">Totale votanti: ${totalVotes}</div>
-                </div>`;
-            });
-
-            // Fondo Cassa
-            renderCustomSection('fondo', 'list-fondo', item => {
-                const waText = encodeURIComponent(`💶 *Fondo Cassa 3E*\n*${item.title}*\n${item.date ? new Date(item.date).toLocaleDateString('it-IT') + '\n' : ''}${item.details ? item.details : ''}`);
-                return `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-center transition hover:shadow-md">
-                    <div class="space-y-1">
-                        <h3 class="font-extrabold text-slate-800 text-sm">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-slate-400 font-semibold">${new Date(item.date).toLocaleDateString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-xs text-slate-600 font-medium mt-1">${escapeHtml(item.details)}</p>` : ''}
-                        ${renderMultipleLinks(item.fileUrl)}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></a>
-                        ${getAdminButtons('fondo', item.id)}
-                    </div>
-                </div>`;
-            });
-
-            // Avvisi
-            renderCustomSection('avvisi', 'list-avvisi', item => {
-                const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}\n${item.fileUrl ? 'Allegati: ' + item.fileUrl : ''}`);
-                return `
-                <div class="bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-200/80 p-5 rounded-3xl shadow-sm flex justify-between items-start space-x-3 transition hover:shadow-md">
-                    <div class="space-y-2 flex-1">
-                        <h3 class="font-extrabold text-amber-900 text-base flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-600"></i>${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-amber-700 font-bold">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-amber-900/90 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                        ${renderMultipleLinks(item.fileUrl)}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-white hover:bg-amber-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-lg"></i></a>
-                        ${getAdminButtons('avvisi', item.id)}
-                    </div>
-                </div>`;
-            });
-
-            // Galleria
-            renderCustomSection('galleria', 'list-galleria', item => {
-                const waText = encodeURIComponent(`📸 *Galleria 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link Foto/Video: ' + item.fileUrl : ''}`);
-                return `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-3.5 flex flex-col justify-between transition hover:shadow-md">
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-extrabold text-slate-800 text-base flex items-center"><i class="fa-solid fa-image text-indigo-500 mr-2"></i>${escapeHtml(item.title)}</h3>
-                            <div class="flex items-center space-x-1.5">
-                                <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></a>
-                                ${getAdminButtons('galleria', item.id)}
-                            </div>
-                        </div>
-                        ${item.details ? `<p class="text-xs text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                    </div>
-                    ${renderMultipleLinks(item.fileUrl)}
-                </div>`;
-            });
-
-            // Link Utili
-            renderCustomSection('linkutili', 'list-linkutili', item => `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex items-center justify-between transition hover:shadow-md">
-                    <div class="space-y-1 pr-2 flex-1">
-                        <h4 class="font-extrabold text-slate-800 text-sm flex items-center"><i class="fa-solid fa-bookmark text-indigo-500 mr-2"></i>${escapeHtml(item.title)}</h4>
-                        ${item.details ? `<p class="text-xs text-slate-500 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl transition shadow-md shadow-indigo-200 whitespace-nowrap"><i class="fa-solid fa-arrow-right mr-1"></i>Visita</a>` : ''}
-                        ${getAdminButtons('linkutili', item.id)}
-                    </div>
-                </div>
-            `);
-
-            // Compleanni
-            renderCustomSection('compleanni', 'list-compleanni', item => {
-                const waText = encodeURIComponent(`🎂 *Compleanno in Classe 3E*\nFesteggiamo insieme ${item.title}!\n${item.details ? 'Data: ' + item.details : ''}`);
-                return `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-center transition hover:shadow-md">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="bg-pink-100 text-pink-600 w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-base shadow-inner">
-                            <i class="fa-solid fa-cake-candles"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-slate-800 text-sm">${escapeHtml(item.title)}</h4>
-                            ${item.details ? `<p class="text-xs text-pink-600 font-bold mt-0.5">${escapeHtml(item.details)}</p>` : ''}
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm" title="Auguri su WhatsApp"><i class="fa-brands fa-whatsapp text-base"></i></a>
-                        ${getAdminButtons('compleanni', item.id)}
-                    </div>
-                </div>`;
-            });
-
-            // Promemoria
-            renderCustomSection('promemoria', 'list-promemoria', item => {
-                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.date ? 'Data/Ora: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegati: ' + item.fileUrl : ''}`);
-                return `
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
-                    <div class="space-y-2 flex-1">
-                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
-                        ${item.date ? `<p class="text-xs text-indigo-600 font-bold"><i class="fa-regular fa-clock mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
-                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                        ${renderMultipleLinks(item.fileUrl)}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
-                        ${getAdminButtons('promemoria', item.id)}
-                    </div>
-                </div>`;
-            });
-        }
-
-        function renderCustomSection(sectionKey, containerId, templateFn) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            const data = dbData[sectionKey];
-            
-            if (!data || Object.keys(data).length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center py-8 text-sm font-medium col-span-full">Nessun elemento presente.</p>`;
-                return;
-            }
-
-            const htmlContent = Object.values(data)
-                .sort((a, b) => b.createdAt - a.createdAt)
-                .map(templateFn)
-                .join('');
-
-            container.innerHTML = htmlContent || `<p class="text-slate-400 text-center py-8 text-sm font-medium col-span-full">Nessun elemento trovato.</p>`;
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        updateAdminUI();
-    </script>
-</body>
-</html>
+                            <button onclick="validateVoter('${item.id}')" class="w-full sm:w-auto
