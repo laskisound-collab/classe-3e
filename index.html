@@ -367,7 +367,7 @@
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
         let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
-        let activeVoterSession = {}; // Stato locale per validare il nome del bambino per ciascun sondaggio
+        let activeVoterSession = {}; // Mappa locale: activeVoterSession[pollId] = "Nome del bambino"
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -467,8 +467,8 @@
                 if (section === 'compiti') document.getElementById('inputMateria').value = item.materia || 'Italiano';
                 document.getElementById('inputDate').value = item.date || '';
                 
-                if (section === 'sondaggi' && item.votes) {
-                    document.getElementById('inputDetails').value = Object.keys(item.votes).join('\n');
+                if (section === 'sondaggi' && item.options) {
+                    document.getElementById('inputDetails').value = item.options.join('\n');
                 } else {
                     document.getElementById('inputDetails').value = item.details || '';
                 }
@@ -567,15 +567,17 @@
             };
 
             if (section === 'sondaggi') {
-                const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-                let votes = {};
+                const optionsArr = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                itemData.options = optionsArr;
                 
+                // Conserva i voti precedenti se esistono già per ciascuna opzione
                 const existingVotes = (itemId && dbData[section][itemId] && dbData[section][itemId].votes) ? dbData[section][itemId].votes : {};
+                let votesObj = {};
                 
-                options.forEach(opt => {
-                    votes[opt] = existingVotes[opt] || [];
+                optionsArr.forEach((opt, index) => {
+                    votesObj[index] = existingVotes[index] || [];
                 });
-                itemData.votes = votes;
+                itemData.votes = votesObj;
             }
 
             dbData[section][idToUse] = itemData;
@@ -610,7 +612,7 @@
             renderAll();
         }
 
-        function votePoll(pollId, optionName) {
+        function votePoll(pollId, optionIndex) {
             const childName = activeVoterSession[pollId];
 
             if (!childName) {
@@ -624,15 +626,15 @@
             let poll = dbData.sondaggi[pollId];
             if (!poll.votes) poll.votes = {};
 
-            // Rimuovi il voto precedente del bambino da qualsiasi altra opzione nello stesso sondaggio
-            for (const opt in poll.votes) {
-                if (!Array.isArray(poll.votes[opt])) poll.votes[opt] = [];
-                poll.votes[opt] = poll.votes[opt].filter(name => name.toLowerCase() !== childName.toLowerCase());
+            // Rimuovi il voto precedente del bambino da qualsiasi altra opzione dello stesso sondaggio
+            for (const idx in poll.votes) {
+                if (!Array.isArray(poll.votes[idx])) poll.votes[idx] = [];
+                poll.votes[idx] = poll.votes[idx].filter(name => name.toLowerCase() !== childName.toLowerCase());
             }
 
-            // Aggiungi il nome all'opzione scelta
-            if (!poll.votes[optionName]) poll.votes[optionName] = [];
-            poll.votes[optionName].push(childName);
+            // Aggiungi il nome all'indice dell'opzione scelta
+            if (!poll.votes[optionIndex]) poll.votes[optionIndex] = [];
+            poll.votes[optionIndex].push(childName);
 
             set(ref(db, 'classe3e'), dbData).then(() => {
                 renderAll();
@@ -641,9 +643,9 @@
             });
         }
 
-        function showVotersModal(pollId, optionName = null) {
+        function showVotersModal(pollId, optionIndex = null) {
             const poll = dbData.sondaggi && dbData.sondaggi[pollId];
-            if (!poll) return;
+            if (!poll || !poll.options) return;
 
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
@@ -651,11 +653,12 @@
 
             let summaryTextForWA = `📊 *Sondaggio 3E: ${poll.title}*\n\n`;
 
-            if (optionName) {
-                titleEl.innerText = "Votanti per: " + optionName;
-                const namesList = poll.votes && poll.votes[optionName] ? poll.votes[optionName] : [];
+            if (optionIndex !== null) {
+                const optName = poll.options[optionIndex];
+                titleEl.innerText = "Votanti per: " + optName;
+                const namesList = poll.votes && poll.votes[optionIndex] ? poll.votes[optionIndex] : [];
                 
-                summaryTextForWA += `*Opzione:* ${optionName}\n*Votanti (${namesList.length}):*\n`;
+                summaryTextForWA += `*Opzione:* ${optName}\n*Votanti (${namesList.length}):*\n`;
                 if (namesList.length === 0) {
                     contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Nessuna adesione per questa opzione.</p>`;
                     summaryTextForWA += `Nessun voto registrato.`;
@@ -675,13 +678,14 @@
                 let summaryHtml = '';
                 const votesMap = poll.votes || {};
 
-                for (const [opt, namesList] of Object.entries(votesMap)) {
-                    const count = Array.isArray(namesList) ? namesList.length : 0;
-                    summaryTextForWA += `*${opt}* (${count} voti):\n`;
+                poll.options.forEach((optName, idx) => {
+                    const namesList = votesMap[idx] || [];
+                    const count = namesList.length;
+                    summaryTextForWA += `*${optName}* (${count} voti):\n`;
                     summaryHtml += `
                         <div class="mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
                             <div class="font-bold text-xs text-indigo-900 mb-1.5 flex justify-between">
-                                <span>${escapeHtml(opt)}</span>
+                                <span>${escapeHtml(optName)}</span>
                                 <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black">${count} voti</span>
                             </div>
                             <div class="space-y-1">
@@ -692,7 +696,7 @@
                             </div>
                         </div>
                     `;
-                }
+                });
                 contentEl.innerHTML = summaryHtml || `<p class="text-slate-400 text-xs text-center py-4">Nessun voto registrato finora.</p>`;
                 summaryTextForWA += `\nPartecipa votando sulla Web App della classe!`;
             }
@@ -906,39 +910,39 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con validazione nome e visualizzazione opzioni)
+            // Sondaggi Interattivi (Basato su indici numerici sicuri)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
+                const optionsArr = item.options || [];
                 const votesMap = item.votes || {};
+                
                 let totalVotes = 0;
-                for (const opt in votesMap) {
-                    if (Array.isArray(votesMap[opt])) totalVotes += votesMap[opt].length;
-                }
+                optionsArr.forEach((_, idx) => {
+                    if (Array.isArray(votesMap[idx])) totalVotes += votesMap[idx].length;
+                });
                 
                 const currentVoter = activeVoterSession[item.id] || '';
                 
                 let optionsHtml = '';
-                for (const [optionName, namesList] of Object.entries(votesMap)) {
-                    const count = Array.isArray(namesList) ? namesList.length : 0;
+                optionsArr.forEach((optionName, idx) => {
+                    const namesList = votesMap[idx] || [];
+                    const count = namesList.length;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                     
                     const voteButtonClass = !currentVoter 
                         ? 'opacity-40 cursor-not-allowed bg-slate-400' 
                         : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95';
-                    
-                    // Pulizia dell'attributo onclick per evitare problemi con virgolette o apici
-                    const escapedOptionName = optionName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                     optionsHtml += `
                         <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100 transition">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="votePoll('${item.id}', '${escapedOptionName}')" 
+                                    <button onclick="votePoll('${item.id}', ${idx})" 
                                         class="${voteButtonClass} text-white px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
                                         ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
                                         <i class="fa-solid fa-check mr-1.5"></i> Vota questa opzione
                                     </button>
-                                    <button onclick="showVotersModal('${item.id}', '${escapedOptionName}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
+                                    <button onclick="showVotersModal('${item.id}', ${idx})" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
                                         <i class="fa-solid fa-list mr-1.5"></i> Votanti (${count})
                                     </button>
                                 </div>
@@ -952,7 +956,7 @@
                             </div>
                         </div>
                     `;
-                }
+                });
 
                 const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}`);
 
