@@ -182,7 +182,7 @@
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sondaggi e Votazioni</h2>
-                    <p class="text-xs text-slate-500 font-medium">Inserisci il nome del bambino per sbloccare il voto</p>
+                    <p class="text-xs text-slate-500 font-medium">Inserisci il nome del bambino e vota l'opzione desiderata</p>
                 </div>
                 <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
@@ -581,24 +581,6 @@
             });
         }
 
-        function checkVoterName(pollId) {
-            const input = document.getElementById(`voter_${pollId}`);
-            const buttons = document.querySelectorAll(`.vote-btn-${pollId}`);
-            const hasName = input && input.value.trim().length > 0;
-            
-            buttons.forEach(btn => {
-                if (hasName) {
-                    btn.disabled = false;
-                    btn.classList.remove('bg-slate-300', 'text-slate-400', 'opacity-50', 'cursor-not-allowed');
-                    btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'text-white', 'cursor-pointer', 'shadow-sm');
-                } else {
-                    btn.disabled = true;
-                    btn.classList.add('bg-slate-300', 'text-slate-400', 'opacity-50', 'cursor-not-allowed');
-                    btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'text-white', 'cursor-pointer', 'shadow-sm');
-                }
-            });
-        }
-
         function votePoll(pollId, optionName) {
             const childNameInput = document.getElementById(`voter_${pollId}`);
             const childName = childNameInput ? childNameInput.value.trim() : '';
@@ -856,7 +838,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi con Pulsanti che si sbloccano scrivendo il nome
+            // Sondaggi Interattivi (Pulsanti visivi e cliccabili per ogni opzione)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -874,7 +856,7 @@
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" disabled class="vote-btn-${item.id} bg-slate-300 text-slate-400 opacity-50 cursor-not-allowed px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
+                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
                                     <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName)}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap"><i class="fa-solid fa-list mr-1"></i> Elenco (${count})</button>
                                 </div>
                             </div>
@@ -905,12 +887,12 @@
                         </div>
                     </div>
                     
-                    <!-- Campo inserimento nome bambino che sblocca i pulsanti -->
+                    <!-- Campo inserimento nome bambino -->
                     <div class="bg-indigo-50/80 p-3.5 rounded-2xl border border-indigo-200 flex items-center space-x-2.5">
                         <div class="bg-indigo-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                             <i class="fa-solid fa-child"></i>
                         </div>
-                        <input type="text" id="voter_${item.id}" oninput="checkVoterName('${item.id}')" placeholder="Scrivi qui il nome del bambino/a per votare..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <input type="text" id="voter_${item.id}" placeholder="Scrivi qui il nome del bambino/a prima di votare..." class="w-full bg-white border border-indigo-300 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                     </div>
 
                     <div class="space-y-2.5 pt-1">
