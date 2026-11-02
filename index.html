@@ -83,7 +83,7 @@
     <!-- Main Container -->
     <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full pb-20 space-y-6">
         
-        <!-- SEZIONE COMPITI CON FILTRO PER MATERIA -->
+        <!-- SEZIONE COMPITI -->
         <section id="compiti" class="tab-content active space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 gap-3">
                 <div>
@@ -110,36 +110,18 @@
             </div>
         </section>
 
-        <!-- SEZIONE ORARIO SCOLASTICO -->
+        <!-- SEZIONE ORARIO SCOLASTICO MODIFICABILE -->
         <section id="orario" class="tab-content space-y-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900">Orario Scolastico Settimanale</h2>
-                    <p class="text-xs text-slate-500">Quadro delle lezioni per preparare lo zaino</p>
+                    <p class="text-xs text-slate-500">Quadro delle lezioni inseribile dall'Admin</p>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Lunedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5"><li>• Italiano</li><li>• Matematica</li><li>• Inglese</li></ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Martedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5"><li>• Storia / Geografia</li><li>• Italiano</li><li>• Arte</li></ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Mercoledì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5"><li>• Matematica</li><li>• Scienze</li><li>• Motoria</li></ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Giovedì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5"><li>• Italiano</li><li>• Inglese</li><li>• Religione</li></ul>
-                    </div>
-                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 space-y-2">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600 border-b pb-1.5">Venerdì</h4>
-                        <ul class="text-xs text-slate-600 space-y-1.5"><li>• Matematica</li><li>• Storia / Geo</li><li>• Musica</li></ul>
-                    </div>
-                </div>
+                <button onclick="openAddModal('orario')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Aggiungi Orario/Giorno</span>
+                </button>
             </div>
+            <div id="list-orario" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
         </section>
 
         <!-- SEZIONE FONDO CASSA -->
@@ -198,7 +180,7 @@
             <div id="list-linkutili" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
         </section>
 
-        <!-- SEZIONE COMPLEANNI -->
+        <!-- SEZIONE COMPLEANNI CON TASTO WHATSAPP -->
         <section id="compleanni" class="tab-content space-y-4">
             <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
                 <div>
@@ -212,7 +194,7 @@
             <div id="list-compleanni" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
         </section>
 
-        <!-- SEZIONE PROMEMORIA -->
+        <!-- SEZIONE PROMEMORIA CON ALLEGATI E WHATSAPP -->
         <section id="promemoria" class="tab-content space-y-4">
             <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60">
                 <div>
@@ -256,9 +238,9 @@
             </div>
             <form id="dataForm" onsubmit="saveData(event)" class="space-y-3.5">
                 <input type="hidden" id="currentSection">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Titolo / Argomento</label>
-                    <input type="text" id="inputTitle" required placeholder="Es. Esercizi di Matematica o Gita" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div id="titleWrapper">
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="labelTitle">Titolo / Argomento</label>
+                    <input type="text" id="inputTitle" placeholder="Es. Esercizi di Matematica o Lunedì" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div id="materiaWrapper">
                     <label class="block text-xs font-bold text-slate-700 mb-1">Materia</label>
@@ -271,16 +253,16 @@
                         <option value="Altro">Altro</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Data e Ora Scadenza / Riferimento (Opzionale)</label>
+                <div id="dateWrapper">
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="labelDate">Data e Ora Scadenza / Riferimento (Opzionale)</label>
                     <input type="datetime-local" id="inputDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Dettagli / Testo aggiuntivo</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1" id="labelDetails">Dettagli / Testo aggiuntivo (o Materie per l'orario)</label>
                     <textarea id="inputDetails" rows="3" placeholder="Scrivi qui i dettagli..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Web / Foto / Video (Google Drive, YouTube, ecc.)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Link Web / Allegato / Foto / Video (Google Drive, ecc.)</label>
                     <input type="url" id="inputFileUrl" placeholder="https://..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl text-sm font-semibold shadow-md shadow-indigo-200 transition">Pubblica</button>
@@ -300,7 +282,7 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
+        let dbData = { compiti: {}, orario: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
 
         window.addEventListener('firebase-ready', () => {
             const { db, ref, onValue } = window.fbDB;
@@ -382,10 +364,30 @@
             document.getElementById('dataForm').reset();
             
             const materiaWrapper = document.getElementById('materiaWrapper');
+            const dateWrapper = document.getElementById('dateWrapper');
+            const labelTitle = document.getElementById('labelTitle');
+            const labelDetails = document.getElementById('labelDetails');
+
             if (section === 'compiti') {
                 materiaWrapper.classList.remove('hidden');
+                dateWrapper.classList.remove('hidden');
+                labelTitle.innerText = "Titolo / Argomento";
+                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
+            } else if (section === 'orario') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Giorno della settimana (Es. Lunedì)";
+                labelDetails.innerText = "Materie della giornata (elenco puntato o separate da virgola)";
+            } else if (section === 'compleanni') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Nome del bambino / bambina";
+                labelDetails.innerText = "Data del compleanno (Es. 15 Settembre)";
             } else {
                 materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.remove('hidden');
+                labelTitle.innerText = "Titolo / Argomento";
+                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
             }
 
             document.getElementById('dataModal').classList.remove('hidden');
@@ -464,6 +466,19 @@
                 </div>`;
             });
 
+            // Orario Scolastico Personalizzabile
+            renderCustomSection('orario', 'list-orario', item => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 space-y-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b pb-1.5">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-indigo-600">${escapeHtml(item.title)}</h4>
+                            ${isAdmin ? `<button onclick="deleteItem('orario', '${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
+                        </div>
+                        <p class="text-xs text-slate-600 mt-2 whitespace-pre-line">${escapeHtml(item.details)}</p>
+                    </div>
+                </div>
+            `);
+
             // Fondo Cassa con WhatsApp
             renderCustomSection('fondo', 'list-fondo', item => {
                 const waText = encodeURIComponent(`💶 *Fondo Cassa 3E*\n*${item.title}*\n${item.date ? new Date(item.date).toLocaleDateString('it-IT') + '\n' : ''}${item.details ? item.details : ''}`);
@@ -533,8 +548,10 @@
                 </div>
             `);
 
-            // Compleanni
-            renderCustomSection('compleanni', 'list-compleanni', item => `
+            // Compleanni con Tasto WhatsApp
+            renderCustomSection('compleanni', 'list-compleanni', item => {
+                const waText = encodeURIComponent(`🎂 *Compleanno in Classe 3E*\nFesteggiamo insieme ${item.title}!\n${item.details ? 'Data: ' + item.details : ''}`);
+                return `
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-center">
                     <div class="flex items-center space-x-3">
                         <div class="bg-pink-100 text-pink-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base shadow-inner">
@@ -542,27 +559,29 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(item.title)}</h4>
-                            ${item.date ? `<p class="text-xs text-pink-600 font-medium">${item.date}</p>` : ''}
-                            ${item.details ? `<p class="text-xs text-slate-500 mt-0.5">${escapeHtml(item.details)}</p>` : ''}
+                            ${item.details ? `<p class="text-xs text-pink-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
                         </div>
                     </div>
-                    ${isAdmin ? `<button onclick="deleteItem('compleanni', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
-                </div>
-            `);
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2 rounded-xl transition shadow-sm" title="Auguri su WhatsApp"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        ${isAdmin ? `<button onclick="deleteItem('compleanni', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                    </div>
+                </div>`;
+            });
 
-            // Promemoria con WhatsApp
+            // Promemoria con Allegati e WhatsApp Corretti
             renderCustomSection('promemoria', 'list-promemoria', item => {
-                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.date ? 'Data/Ora: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegato: ' + item.fileUrl : ''}`);
                 return `
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3">
                     <div class="space-y-1.5 flex-1">
                         <h3 class="font-bold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-600 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600">${escapeHtml(item.details)}</p>` : ''}
-                        ${item.fileUrl ? `<div class="pt-1"><a href="${item.fileUrl}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl font-medium"><i class="fa-solid fa-paperclip"><span>Allegato</span></i></a></div>` : ''}
+                        ${item.fileUrl ? `<div class="pt-1"><a href="${escapeHtml(item.fileUrl)}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl font-medium transition"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato / File</span></a></div>` : ''}
                     </div>
                     <div class="flex items-center space-x-2">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${isAdmin ? `<button onclick="deleteItem('promemoria', '${item.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
                     </div>
                 </div>`;
@@ -584,7 +603,7 @@
                 .map(templateFn)
                 .join('');
 
-            container.innerHTML = htmlContent || `<p class="text-slate-400 text-center py-6 text-sm col-span-full">Nessun elemento trovato per il filtro selezionato.</p>`;
+            container.innerHTML = htmlContent || `<p class="text-slate-400 text-center py-6 text-sm col-span-full">Nessun elemento trovato.</p>`;
         }
 
         function escapeHtml(text) {
