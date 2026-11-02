@@ -91,8 +91,11 @@
     <!-- Main Container -->
     <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full pb-20 space-y-6">
         
-        <!-- SEZIONE COMPITI -->
+        <!-- SEZIONE COMPITI (HOME) -->
         <section id="compiti" class="tab-content active space-y-4">
+            <!-- Box Conto alla Rovescia in Evidenza sulla Home -->
+            <div id="homeCountdownBox"></div>
+
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 gap-3">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Diario dei Compiti</h2>
@@ -335,7 +338,7 @@
         </div>
     </div>
 
-    <!-- Script Logica App, Firebase & Orologio -->
+    <!-- Script Logica App, Firebase, Orologio & Countdown in Tempo Reale -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -540,16 +543,13 @@
                 createdAt: createdAtTime
             };
 
-            // Se è un sondaggio e viene creato da zero, inizializziamo i voti
             if (section === 'sondaggi' && (!itemId || !dbData[section][itemId].votes)) {
                 const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
                 let votes = {};
                 options.forEach(opt => { votes[opt] = 0; });
                 itemData.votes = votes;
-                itemData.votedUsers = {}; // per tracciare chi ha votato (opzionale)
             } else if (itemId && dbData[section][itemId] && dbData[section][itemId].votes) {
                 itemData.votes = dbData[section][itemId].votes;
-                itemData.votedUsers = dbData[section][itemId].votedUsers || {};
             }
 
             dbData[section][idToUse] = itemData;
@@ -571,8 +571,6 @@
 
             let poll = dbData.sondaggi[pollId];
             if (!poll.votes) poll.votes = {};
-
-            // Incrementa il voto per l'opzione scelta
             poll.votes[optionName] = (poll.votes[optionName] || 0) + 1;
 
             set(ref(db, 'classe3e'), dbData).then(() => {
@@ -615,8 +613,78 @@
             `;
         }
 
+        // Funzione per calcolare il tempo rimanente in tempo reale
+        function getTimeRemaining(endtime) {
+            const total = Date.parse(endtime) - Date.parse(new Date());
+            if (total <= 0) {
+                return { total: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
+            }
+            const seconds = Math.floor((total / 1000) % 60);
+            const minutes = Math.floor((total / 1000 / 60) % 60);
+            const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+            const days = Math.floor(total / (1000 * 60 * 60 * 24));
+            return { total, days, hours, minutes, seconds };
+        }
+
+        // Aggiorna tutti i timer in tempo reale ogni secondo
+        setInterval(() => {
+            const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
+            if (countdownData.length === 0) return;
+            const latestCD = countdownData.sort((a, b) => b.createdAt - a.createdAt)[0];
+            if (!latestCD.date) return;
+
+            const t = getTimeRemaining(latestCD.date);
+            
+            // Aggiorna box Home
+            const homeCDHtml = document.getElementById('homeCountdownContent');
+            if (homeCDHtml) {
+                homeCDHtml.innerHTML = `
+                    <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                `;
+            }
+
+            // Aggiorna scheda Countdown
+            const tabCDHtml = document.getElementById(`cd_timer_${latestCD.id}`);
+            if (tabCDHtml) {
+                tabCDHtml.innerHTML = `
+                    <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                `;
+            }
+        }, 1000);
+
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
+
+            // --- Render Countdown sulla Home ---
+            const homeCountdownContainer = document.getElementById('homeCountdownBox');
+            const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
+            if (homeCountdownContainer) {
+                if (countdownData.length === 0) {
+                    homeCountdownContainer.innerHTML = '';
+                } else {
+                    const latestCD = countdownData.sort((a, b) => b.createdAt - a.createdAt)[0];
+                    const t = latestCD.date ? getTimeRemaining(latestCD.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
+                    const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${latestCD.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${latestCD.date ? 'Data evento: ' + new Date(latestCD.date).toLocaleString('it-IT') : ''}`);
+                    
+                    homeCountdownContainer.innerHTML = `
+                    <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden mb-4">
+                        <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="space-y-2 z-10 flex-1 pr-3">
+                            <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-hourglass-half mr-1"></i> Conto alla Rovescia</span>
+                            <h3 class="font-black text-lg text-white">${escapeHtml(latestCD.title)}</h3>
+                            ${latestCD.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(latestCD.date).toLocaleString('it-IT')}</p>` : ''}
+                            ${latestCD.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(latestCD.details)}</p>` : ''}
+                            <div class="pt-2 flex items-baseline space-x-2" id="homeCountdownContent">
+                                <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end space-y-2 z-10">
+                            <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-2xl transition shadow-md" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                            ${isAdmin ? `<div class="bg-white/10 p-1.5 rounded-2xl">${getAdminButtons('countdown', latestCD.id)}</div>` : ''}
+                        </div>
+                    </div>`;
+                }
+            }
 
             // Compiti
             renderCustomSection('compiti', 'list-compiti', item => {
@@ -692,17 +760,10 @@
                 </div>`;
             });
 
-            // Countdown (Conto alla rovescia dinamico)
+            // Countdown (Scheda dedicata)
             renderCustomSection('countdown', 'list-countdown', item => {
-                let diffDays = "Scaduto";
-                if (item.date) {
-                    const eventDate = new Date(item.date);
-                    const now = new Date();
-                    const diffTime = eventDate - now;
-                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    if (diffDays < 0) diffDays = 0;
-                }
-                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${diffDays} giorni!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
+                const t = item.date ? getTimeRemaining(item.date) : { days: 0, hours: 0, minutes: 0, seconds: 0 };
+                const waText = encodeURIComponent(`⏳ *Conto alla rovescia 3E*\n*${item.title}*\nMancano ${t.days} giorni, ${t.hours} ore e ${t.minutes} minuti!\n${item.date ? 'Data evento: ' + new Date(item.date).toLocaleString('it-IT') : ''}`);
                 return `
                 <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black pointer-events-none"><i class="fa-solid fa-hourglass-half"></i></div>
@@ -711,14 +772,13 @@
                         <h3 class="font-black text-lg text-white">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-200 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-xs text-indigo-100/80 font-medium">${escapeHtml(item.details)}</p>` : ''}
-                        <div class="pt-2 flex items-baseline space-x-2">
-                            <span class="text-3xl font-black text-emerald-400">${diffDays >= 0 ? diffDays : 0}</span>
-                            <span class="text-xs font-bold text-indigo-200 uppercase tracking-wide">giorni all'evento</span>
+                        <div class="pt-2 flex items-baseline space-x-2" id="cd_timer_${item.id}">
+                            <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end space-y-2 z-10">
                         <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-2xl transition shadow-md" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
-                        ${isAdmin ? `<div class="bg-white/10 p-1.5 rounded-2xl">${getAdminButtons('countdown', item.id)}</div>` : ''}
+                        ${getAdminButtons('countdown', item.id)}
                     </div>
                 </div>`;
             });
