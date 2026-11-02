@@ -570,7 +570,6 @@
                 const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
                 let votes = {};
                 
-                // Mantieni i voti esistenti se si sta modificando e l'opzione esiste già
                 const existingVotes = (itemId && dbData[section][itemId] && dbData[section][itemId].votes) ? dbData[section][itemId].votes : {};
                 
                 options.forEach(opt => {
@@ -603,7 +602,7 @@
             }
 
             activeVoterSession[pollId] = nameValue;
-            renderAll(); // Ridisegna immediatamente la schermata sbloccando le opzioni
+            renderAll();
         }
 
         function resetVoter(pollId) {
@@ -926,17 +925,20 @@
                         ? 'opacity-40 cursor-not-allowed bg-slate-400' 
                         : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95';
                     
+                    // Pulizia dell'attributo onclick per evitare problemi con virgolette o apici
+                    const escapedOptionName = optionName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
                     optionsHtml += `
                         <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100 transition">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" 
+                                    <button onclick="votePoll('${item.id}', '${escapedOptionName}')" 
                                         class="${voteButtonClass} text-white px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
                                         ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
                                         <i class="fa-solid fa-check mr-1.5"></i> Vota questa opzione
                                     </button>
-                                    <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
+                                    <button onclick="showVotersModal('${item.id}', '${escapedOptionName}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
                                         <i class="fa-solid fa-list mr-1.5"></i> Votanti (${count})
                                     </button>
                                 </div>
