@@ -224,4 +224,493 @@
                     <i class="fa-solid fa-plus"></i><span>Aggiungi Promemoria</span>
                 </button>
             </div>
-            <div id="list-promemoria" class="space-y-3.5
+            <div id="list-promemoria" class="space-y-3.5"></div>
+        </section>
+
+    </main>
+
+    <!-- Modale Login Admin -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-extrabold text-slate-900">Accesso Area Admin</h3>
+                <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="adminLoginForm" class="space-y-3.5">
+                <p class="text-xs text-slate-500 font-medium">Inserisci la password amministratore per sbloccare i comandi.</p>
+                <input type="password" id="adminPasswordInput" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 transition">Accedi</button>
+            </div>
+            <div id="adminLogoutDiv" class="hidden space-y-3.5">
+                <p class="text-xs text-emerald-600 font-bold flex items-center bg-emerald-50 p-3 rounded-2xl"><i class="fa-solid fa-circle-check mr-2 text-base"></i> Autenticato come Amministratore.</p>
+                <button onclick="logoutAdmin()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-2xl text-sm font-bold transition">Esci dall'Area Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Inserimento / Modifica Dati -->
+    <div id="dataModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 id="modalTitle" class="text-lg font-extrabold text-slate-900">Nuovo Elemento</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="dataForm" onsubmit="saveData(event)" class="space-y-4">
+                <input type="hidden" id="currentSection">
+                <input type="hidden" id="editItemId">
+                <div id="titleWrapper">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelTitle">Titolo / Argomento</label>
+                    <input type="text" id="inputTitle" placeholder="Es. Compiti di Matematica" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                </div>
+                <div id="materiaWrapper">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Materia</label>
+                    <select id="inputMateria" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <option value="Italiano">Italiano</option>
+                        <option value="Matematica">Matematica</option>
+                        <option value="Inglese">Inglese</option>
+                        <option value="Storia/Geografia">Storia / Geografia</option>
+                        <option value="Scienze">Scienze</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+                <div id="dateWrapper">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelDate">Data e Ora Scadenza (Opzionale)</label>
+                    <input type="datetime-local" id="inputDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelDetails">Dettagli / Testo aggiuntivo</label>
+                    <textarea id="inputDetails" rows="3" placeholder="Scrivi qui i dettagli..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Allegati (più link separati da virgola)</label>
+                    <input type="text" id="inputFileUrl" placeholder="https://link1.com, https://link2.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                </div>
+                <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 transition">Pubblica</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Logica App, Firebase & Orologio -->
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const clockEl = document.getElementById('liveClockDisplay');
+            if (clockEl) clockEl.innerText = now.toLocaleDateString('it-IT', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
+        let dbData = { compiti: {}, orario: {}, mensa: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {} };
+
+        window.addEventListener('firebase-ready', () => {
+            const { db, ref, onValue } = window.fbDB;
+            const dataRef = ref(db, 'classe3e');
+            
+            onValue(dataRef, (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    dbData = val;
+                }
+                renderAll();
+            });
+        });
+
+        function updateAdminUI() {
+            const adminOnlyElements = document.querySelectorAll('.admin-only');
+            const adminIcon = document.getElementById('adminIcon');
+            const adminText = document.getElementById('adminText');
+            const adminLoginForm = document.getElementById('adminLoginForm');
+            const adminLogoutDiv = document.getElementById('adminLogoutDiv');
+
+            if (isAdmin) {
+                adminOnlyElements.forEach(el => el.classList.remove('hidden'));
+                if (adminIcon) adminIcon.className = "fa-solid fa-lock-open text-xs text-emerald-300";
+                if (adminText) adminText.innerText = "Admin attivo";
+                if (adminLoginForm) adminLoginForm.classList.add('hidden');
+                if (adminLogoutDiv) adminLogoutDiv.classList.remove('hidden');
+                localStorage.setItem('isAdmin_3e', 'true');
+            } else {
+                adminOnlyElements.forEach(el => el.classList.add('hidden'));
+                if (adminIcon) adminIcon.className = "fa-solid fa-lock text-xs text-amber-300";
+                if (adminText) adminText.innerText = "Area Admin";
+                if (adminLoginForm) adminLoginForm.classList.remove('hidden');
+                if (adminLogoutDiv) adminLogoutDiv.classList.add('hidden');
+                localStorage.setItem('isAdmin_3e', 'false');
+            }
+            renderAll();
+        }
+
+        function toggleAdminModal() {
+            document.getElementById('adminModal').classList.toggle('hidden');
+        }
+
+        function checkAdminPassword() {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === '3e') {
+                isAdmin = true;
+                updateAdminUI();
+                toggleAdminModal();
+                document.getElementById('adminPasswordInput').value = '';
+            } else {
+                alert('Password errata!');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminUI();
+            toggleAdminModal();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-indigo-600', 'bg-indigo-50', 'shadow-sm');
+                el.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('text-indigo-600', 'bg-indigo-50', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            }
+        }
+
+        function openAddModal(section, itemId = null) {
+            document.getElementById('currentSection').value = section;
+            document.getElementById('editItemId').value = itemId || '';
+            document.getElementById('dataForm').reset();
+            
+            const materiaWrapper = document.getElementById('materiaWrapper');
+            const dateWrapper = document.getElementById('dateWrapper');
+            const labelTitle = document.getElementById('labelTitle');
+            const labelDetails = document.getElementById('labelDetails');
+            const labelFileUrl = document.getElementById('labelFileUrl');
+            const modalTitle = document.getElementById('modalTitle');
+            const saveBtn = document.getElementById('saveBtn');
+
+            if (itemId && dbData[section] && dbData[section][itemId]) {
+                // Modalità Modifica
+                const item = dbData[section][itemId];
+                modalTitle.innerText = "Modifica " + section.toUpperCase();
+                saveBtn.innerText = "Salva Modifiche";
+                document.getElementById('inputTitle').value = item.title || '';
+                if (section === 'compiti') document.getElementById('inputMateria').value = item.materia || 'Italiano';
+                document.getElementById('inputDate').value = item.date || '';
+                document.getElementById('inputDetails').value = item.details || '';
+                document.getElementById('inputFileUrl').value = item.fileUrl || '';
+            } else {
+                // Modalità Nuovo
+                modalTitle.innerText = "Aggiungi a " + section.toUpperCase();
+                saveBtn.innerText = "Pubblica";
+            }
+
+            if (section === 'compiti' || section === 'avvisi') {
+                materiaWrapper.classList.toggle('hidden', section !== 'compiti');
+                dateWrapper.classList.remove('hidden');
+                labelTitle.innerText = "Titolo / Argomento";
+                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
+                labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
+            } else if (section === 'orario') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Giorno della settimana (Es. Lunedì)";
+                labelDetails.innerText = "Materie della giornata (separate da virgola o elenco)";
+                labelFileUrl.innerText = "Eventuale link allegato (opzionale)";
+            } else if (section === 'mensa') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Titolo Menu (Es. Menu Scolastico - Settimana A)";
+                labelDetails.innerText = "Note o indicazioni (opzionale)";
+                labelFileUrl.innerText = "Link PDF o Foto del Menu (Google Drive, ecc.)";
+            } else if (section === 'compleanni') {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.add('hidden');
+                labelTitle.innerText = "Nome del bambino / bambina";
+                labelDetails.innerText = "Data del compleanno (Es. 15 Settembre)";
+                labelFileUrl.innerText = "Link foto o auguri (opzionale)";
+            } else {
+                materiaWrapper.classList.add('hidden');
+                dateWrapper.classList.remove('hidden');
+                labelTitle.innerText = "Titolo / Argomento";
+                labelDetails.innerText = "Dettagli / Testo aggiuntivo";
+                labelFileUrl.innerText = "Link / Allegati (più link separati da virgola)";
+            }
+
+            document.getElementById('dataModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('dataModal').classList.add('hidden');
+        }
+
+        function saveData(e) {
+            e.preventDefault();
+            const section = document.getElementById('currentSection').value;
+            const itemId = document.getElementById('editItemId').value;
+            const title = document.getElementById('inputTitle').value;
+            const materia = document.getElementById('inputMateria').value;
+            const date = document.getElementById('inputDate').value;
+            const details = document.getElementById('inputDetails').value;
+            const fileUrl = document.getElementById('inputFileUrl').value;
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerText = "Salvataggio in corso...";
+            saveBtn.disabled = true;
+
+            const { db, ref, set } = window.fbDB;
+            if (!dbData[section]) dbData[section] = {};
+            
+            const idToUse = itemId ? itemId : ('item_' + Date.now());
+            const createdAtTime = (itemId && dbData[section][itemId]) ? dbData[section][itemId].createdAt : Date.now();
+
+            dbData[section][idToUse] = {
+                id: idToUse,
+                title,
+                materia: section === 'compiti' ? materia : '',
+                date,
+                details,
+                fileUrl,
+                createdAt: createdAtTime
+            };
+
+            set(ref(db, 'classe3e'), dbData).then(() => {
+                closeAddModal();
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            }).catch(err => {
+                alert('Errore di salvataggio: ' + err.message);
+                saveBtn.innerText = "Pubblica";
+                saveBtn.disabled = false;
+            });
+        }
+
+        function deleteItem(section, id) {
+            if (confirm("Vuoi davvero eliminare questo elemento?")) {
+                const { db, ref, set } = window.fbDB;
+                delete dbData[section][id];
+                set(ref(db, 'classe3e'), dbData);
+            }
+        }
+
+        function renderMultipleLinks(fileUrlStr) {
+            if (!fileUrlStr) return '';
+            const urls = fileUrlStr.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+            if (urls.length === 0) {
+                return `<div class="pt-1"><a href="${escapeHtml(fileUrlStr)}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2 rounded-2xl font-bold transition"><i class="fa-solid fa-paperclip"></i><span>Apri Allegato / File</span></a></div>`;
+            }
+            return urls.map((url, index) => `
+                <div class="pt-1 inline-block mr-2 mb-1">
+                    <a href="${escapeHtml(url.trim())}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-2 rounded-2xl font-bold transition">
+                        <i class="fa-solid fa-paperclip"></i><span>Allegato ${urls.length > 1 ? (index + 1) : 'File'}</span>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function getAdminButtons(section, id) {
+            if (!isAdmin) return '';
+            return `
+                <div class="flex items-center space-x-1">
+                    <button onclick="openAddModal('${section}', '${id}')" class="text-indigo-400 hover:text-indigo-600 p-2.5 rounded-xl hover:bg-indigo-50 transition" title="Modifica"><i class="fa-solid fa-pen text-sm"></i></button>
+                    <button onclick="deleteItem('${section}', '${id}')" class="text-red-400 hover:text-red-600 p-2.5 rounded-xl hover:bg-red-50 transition" title="Elimina"><i class="fa-solid fa-trash text-sm"></i></button>
+                </div>
+            `;
+        }
+
+        function renderAll() {
+            const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
+
+            // Compiti
+            renderCustomSection('compiti', 'list-compiti', item => {
+                if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
+                const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegati: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
+                    <div class="space-y-2 flex-1">
+                        <span class="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">${escapeHtml(item.materia || 'Compito')}</span>
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-indigo-600 font-bold"><i class="fa-regular fa-clock mr-1"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${getAdminButtons('compiti', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Orario
+            renderCustomSection('orario', 'list-orario', item => `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-2.5 flex flex-col justify-between transition hover:shadow-md">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h4 class="font-extrabold text-xs uppercase tracking-wider text-indigo-600">${escapeHtml(item.title)}</h4>
+                            ${getAdminButtons('orario', item.id)}
+                        </div>
+                        <p class="text-xs text-slate-600 font-medium mt-2.5 whitespace-pre-line leading-relaxed">${escapeHtml(item.details)}</p>
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                </div>
+            `);
+
+            // Menu Mensa
+            renderCustomSection('mensa', 'list-mensa', item => {
+                const waText = encodeURIComponent(`🍽️ *Menu Mensa 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link Menu (PDF/Foto): ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
+                    <div class="space-y-2 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-utensils mr-1"></i> Mensa</span>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi Menu su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${getAdminButtons('mensa', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Fondo Cassa
+            renderCustomSection('fondo', 'list-fondo', item => {
+                const waText = encodeURIComponent(`💶 *Fondo Cassa 3E*\n*${item.title}*\n${item.date ? new Date(item.date).toLocaleDateString('it-IT') + '\n' : ''}${item.details ? item.details : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-center transition hover:shadow-md">
+                    <div class="space-y-1">
+                        <h3 class="font-extrabold text-slate-800 text-sm">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-slate-400 font-semibold">${new Date(item.date).toLocaleDateString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-xs text-slate-600 font-medium mt-1">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        ${getAdminButtons('fondo', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Avvisi
+            renderCustomSection('avvisi', 'list-avvisi', item => {
+                const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}\n${item.fileUrl ? 'Allegati: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-200/80 p-5 rounded-3xl shadow-sm flex justify-between items-start space-x-3 transition hover:shadow-md">
+                    <div class="space-y-2 flex-1">
+                        <h3 class="font-extrabold text-amber-900 text-base flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-600"></i>${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-amber-700 font-bold">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-amber-900/90 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-white hover:bg-amber-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${getAdminButtons('avvisi', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Galleria
+            renderCustomSection('galleria', 'list-galleria', item => {
+                const waText = encodeURIComponent(`📸 *Galleria 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link Foto/Video: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 space-y-3.5 flex flex-col justify-between transition hover:shadow-md">
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-extrabold text-slate-800 text-base flex items-center"><i class="fa-solid fa-image text-indigo-500 mr-2"></i>${escapeHtml(item.title)}</h3>
+                            <div class="flex items-center space-x-1.5">
+                                <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                                ${getAdminButtons('galleria', item.id)}
+                            </div>
+                        </div>
+                        ${item.details ? `<p class="text-xs text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                    </div>
+                    ${renderMultipleLinks(item.fileUrl)}
+                </div>`;
+            });
+
+            // Link Utili
+            renderCustomSection('linkutili', 'list-linkutili', item => `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex items-center justify-between transition hover:shadow-md">
+                    <div class="space-y-1 pr-2 flex-1">
+                        <h4 class="font-extrabold text-slate-800 text-sm flex items-center"><i class="fa-solid fa-bookmark text-indigo-500 mr-2"></i>${escapeHtml(item.title)}</h4>
+                        ${item.details ? `<p class="text-xs text-slate-500 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl transition shadow-md shadow-indigo-200 whitespace-nowrap"><i class="fa-solid fa-arrow-right mr-1"></i>Visita</a>` : ''}
+                        ${getAdminButtons('linkutili', item.id)}
+                    </div>
+                </div>
+            `);
+
+            // Compleanni
+            renderCustomSection('compleanni', 'list-compleanni', item => {
+                const waText = encodeURIComponent(`🎂 *Compleanno in Classe 3E*\nFesteggiamo insieme ${item.title}!\n${item.details ? 'Data: ' + item.details : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-center transition hover:shadow-md">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="bg-pink-100 text-pink-600 w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-base shadow-inner">
+                            <i class="fa-solid fa-cake-candles"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-sm">${escapeHtml(item.title)}</h4>
+                            ${item.details ? `<p class="text-xs text-pink-600 font-bold mt-0.5">${escapeHtml(item.details)}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition shadow-sm" title="Auguri su WhatsApp"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        ${getAdminButtons('compleanni', item.id)}
+                    </div>
+                </div>`;
+            });
+
+            // Promemoria
+            renderCustomSection('promemoria', 'list-promemoria', item => {
+                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.date ? 'Data/Ora: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegati: ' + item.fileUrl : ''}`);
+                return `
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60 flex justify-between items-start space-x-3 transition hover:shadow-md">
+                    <div class="space-y-2 flex-1">
+                        <h3 class="font-extrabold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                        ${item.date ? `<p class="text-xs text-indigo-600 font-bold"><i class="fa-regular fa-clock mr-1"></i>${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-slate-600 font-medium">${escapeHtml(item.details)}</p>` : ''}
+                        ${renderMultipleLinks(item.fileUrl)}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition shadow-sm" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        ${getAdminButtons('promemoria', item.id)}
+                    </div>
+                </div>`;
+            });
+        }
+
+        function renderCustomSection(sectionKey, containerId, templateFn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const data = dbData[sectionKey];
+            
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-8 text-sm font-medium col-span-full">Nessun elemento presente.</p>`;
+                return;
+            }
+
+            const htmlContent = Object.values(data)
+                .sort((a, b) => b.createdAt - a.createdAt)
+                .map(templateFn)
+                .join('');
+
+            container.innerHTML = htmlContent || `<p class="text-slate-400 text-center py-8 text-sm font-medium col-span-full">Nessun elemento trovato.</p>`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        updateAdminUI();
+    </script>
+</body>
+</html>
