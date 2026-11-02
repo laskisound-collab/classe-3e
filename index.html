@@ -1226,7 +1226,7 @@
                 }
             }
 
-            // Compiti (Con Allegato 1, 2, 3... in WhatsApp)
+            // Compiti (Con Link 1, Link 2, ecc. in WhatsApp)
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
                 
@@ -1240,11 +1240,11 @@
                 if (item.fileUrl) {
                     const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
                     if (urls.length === 1) {
-                        waText += `🔗 *Link Registro / Allegato:* ${urls[0]}\n`;
+                        waText += `🔗 *Link 1:* ${urls[0]}\n`;
                     } else if (urls.length > 1) {
-                        waText += `🔗 *Allegati utili:*\n`;
+                        waText += `🔗 *Link utili:*\n`;
                         urls.forEach((u, idx) => {
-                            waText += `📎 Allegato ${idx + 1}: ${u}\n`;
+                            waText += `Link ${idx + 1}: ${u}\n`;
                         });
                     }
                 }
