@@ -631,25 +631,49 @@
             });
         }
 
-        function showVotersModal(pollId, optionName) {
+        function showVotersModal(pollId, optionName = null) {
             const poll = dbData.sondaggi && dbData.sondaggi[pollId];
-            if (!poll || !poll.votes || !poll.votes[optionName]) return;
+            if (!poll) return;
 
-            const namesList = poll.votes[optionName];
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
 
-            titleEl.innerText = "Votanti per: " + optionName;
-            
-            if (namesList.length === 0) {
-                contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Nessuna adesione per questa opzione.</p>`;
+            if (optionName) {
+                // Riepilogo di una specifica opzione
+                titleEl.innerText = "Votanti per: " + optionName;
+                const namesList = poll.votes && poll.votes[optionName] ? poll.votes[optionName] : [];
+                
+                if (namesList.length === 0) {
+                    contentEl.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Nessuna adesione per questa opzione.</p>`;
+                } else {
+                    contentEl.innerHTML = namesList.map(name => `
+                        <div class="flex items-center space-x-2 bg-indigo-50/70 p-2.5 rounded-xl text-xs font-bold text-indigo-900">
+                            <i class="fa-solid fa-child text-indigo-600"></i>
+                            <span>${escapeHtml(name)}</span>
+                        </div>
+                    `).join('');
+                }
             } else {
-                contentEl.innerHTML = namesList.map(name => `
-                    <div class="flex items-center space-x-2 bg-indigo-50/70 p-2.5 rounded-xl text-xs font-bold text-indigo-900">
-                        <i class="fa-solid fa-child text-indigo-600"></i>
-                        <span>${escapeHtml(name)}</span>
-                    </div>
-                `).join('');
+                // Riepilogo generale di tutte le opzioni (Tasto "Visualizza Riepilogo")
+                titleEl.innerText = "Riepilogo Sondaggio";
+                let summaryHtml = '';
+                const votesMap = poll.votes || {};
+
+                for (const [opt, namesList] of Object.entries(votesMap)) {
+                    const count = Array.isArray(namesList) ? namesList.length : 0;
+                    summaryHtml += `
+                        <div class="mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                            <div class="font-bold text-xs text-indigo-900 mb-1.5 flex justify-between">
+                                <span>${escapeHtml(opt)}</span>
+                                <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black">${count} voti</span>
+                            </div>
+                            <div class="space-y-1">
+                                ${count === 0 ? '<span class="text-[11px] text-slate-400 italic">Nessun voto</span>' : namesList.map(n => `<span class="inline-block bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-lg text-[11px] font-semibold mr-1 mb-1"><i class="fa-solid fa-child mr-1 text-indigo-500"></i>${escapeHtml(n)}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                contentEl.innerHTML = summaryHtml || `<p class="text-slate-400 text-xs text-center py-4">Nessun voto registrato finora.</p>`;
             }
 
             document.getElementById('votersModal').classList.remove('hidden');
@@ -854,7 +878,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con validazione nome e pulsanti correttamente visibili)
+            // Sondaggi Interattivi (Con validazione nome e opzioni cliccabili)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const votesMap = item.votes || {};
                 let totalVotes = 0;
@@ -869,20 +893,22 @@
                     const count = Array.isArray(namesList) ? namesList.length : 0;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                     
-                    const voteButtonDisabledClass = !currentVoter ? 'opacity-40 cursor-not-allowed bg-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm cursor-pointer';
+                    const voteButtonClass = !currentVoter 
+                        ? 'opacity-40 cursor-not-allowed bg-slate-400' 
+                        : 'bg-indigo-600 hover:bg-indigo-700 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95';
                     
                     optionsHtml += `
-                        <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100 transition">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
                                 <div class="flex items-center space-x-2">
                                     <button onclick="votePoll('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" 
-                                        class="${voteButtonDisabledClass} text-white px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
+                                        class="${voteButtonClass} text-white px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center"
                                         ${!currentVoter ? 'title="Inserisci e valida prima il nome del bambino"' : ''}>
-                                        <i class="fa-solid fa-check mr-1.5"></i> Vota qui
+                                        <i class="fa-solid fa-check mr-1.5"></i> Vota questa opzione
                                     </button>
                                     <button onclick="showVotersModal('${item.id}', '${escapeHtml(optionName).replace(/'/g, "\\'")}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center">
-                                        <i class="fa-solid fa-list mr-1.5"></i> Elenco (${count})
+                                        <i class="fa-solid fa-list mr-1.5"></i> Votanti (${count})
                                     </button>
                                 </div>
                             </div>
@@ -952,7 +978,13 @@
                     <div class="space-y-2.5 pt-1">
                         ${optionsHtml}
                     </div>
-                    <div class="text-[11px] text-slate-400 font-bold text-right">Totale votanti: ${totalVotes}</div>
+
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <button onclick="showVotersModal('${item.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                            <i class="fa-solid fa-chart-pie text-indigo-600"></i><span>Visualizza Riepilogo Voti</span>
+                        </button>
+                        <div class="text-xs font-extrabold text-slate-600">Totale votanti: <span class="text-indigo-700 text-sm">${totalVotes}</span></div>
+                    </div>
                 </div>`;
             });
 
