@@ -182,7 +182,7 @@
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/60">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sondaggi e Votazioni</h2>
-                    <p class="text-xs text-slate-500 font-medium">Esprimi la tua preferenza sulle attività di classe</p>
+                    <p class="text-xs text-slate-500 font-medium">Esprimi la tua preferenza inserendo il nome del bambino</p>
                 </div>
                 <button onclick="openAddModal('sondaggi')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Crea Sondaggio</span>
@@ -543,13 +543,15 @@
                 createdAt: createdAtTime
             };
 
-            if (section === 'sondaggi' && (!itemId || !dbData[section][itemId].votes)) {
-                const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-                let votes = {};
-                options.forEach(opt => { votes[opt] = 0; });
-                itemData.votes = votes;
-            } else if (itemId && dbData[section][itemId] && dbData[section][itemId].votes) {
-                itemData.votes = dbData[section][itemId].votes;
+            if (section === 'sondaggi') {
+                if (!itemId || !dbData[section][itemId].votes) {
+                    const options = details.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+                    let votes = {};
+                    options.forEach(opt => { votes[opt] = []; }); // Salviamo array di nomi per ogni opzione
+                    itemData.votes = votes;
+                } else {
+                    itemData.votes = dbData[section][itemId].votes;
+                }
             }
 
             dbData[section][idToUse] = itemData;
@@ -566,14 +568,33 @@
         }
 
         function votePoll(pollId, optionName) {
+            const childNameInput = document.getElementById(`voter_${pollId}`);
+            const childName = childNameInput ? childNameInput.value.trim() : '';
+
+            if (!childName) {
+                alert('Inserisci il nome del bambino/a prima di votare!');
+                if (childNameInput) childNameInput.focus();
+                return;
+            }
+
             const { db, ref, set } = window.fbDB;
             if (!dbData.sondaggi || !dbData.sondaggi[pollId]) return;
 
             let poll = dbData.sondaggi[pollId];
             if (!poll.votes) poll.votes = {};
-            poll.votes[optionName] = (poll.votes[optionName] || 0) + 1;
+
+            // Rimuovi il voto precedente del bambino da qualsiasi altra opzione nello stesso sondaggio (un solo voto per bambino)
+            for (const opt in poll.votes) {
+                if (!Array.isArray(poll.votes[opt])) poll.votes[opt] = [];
+                poll.votes[opt] = poll.votes[opt].filter(name => name.toLowerCase() !== childName.toLowerCase());
+            }
+
+            // Aggiungi il nome all'opzione scelta
+            if (!poll.votes[optionName]) poll.votes[optionName] = [];
+            poll.votes[optionName].push(childName);
 
             set(ref(db, 'classe3e'), dbData).then(() => {
+                childNameInput.value = '';
                 renderAll();
             }).catch(err => {
                 alert('Errore nella votazione: ' + err.message);
@@ -613,7 +634,6 @@
             `;
         }
 
-        // Funzione per calcolare il tempo rimanente in tempo reale
         function getTimeRemaining(endtime) {
             const total = Date.parse(endtime) - Date.parse(new Date());
             if (total <= 0) {
@@ -626,7 +646,6 @@
             return { total, days, hours, minutes, seconds };
         }
 
-        // Aggiorna tutti i timer in tempo reale ogni secondo
         setInterval(() => {
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
             if (countdownData.length === 0) return;
@@ -635,27 +654,21 @@
 
             const t = getTimeRemaining(latestCD.date);
             
-            // Aggiorna box Home
             const homeCDHtml = document.getElementById('homeCountdownContent');
             if (homeCDHtml) {
-                homeCDHtml.innerHTML = `
-                    <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
-                `;
+                homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
             }
 
-            // Aggiorna scheda Countdown
             const tabCDHtml = document.getElementById(`cd_timer_${latestCD.id}`);
             if (tabCDHtml) {
-                tabCDHtml.innerHTML = `
-                    <span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>
-                `;
+                tabCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black text-emerald-400">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
             }
         }, 1000);
 
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
-            // --- Render Countdown sulla Home ---
+            // --- Countdown Home ---
             const homeCountdownContainer = document.getElementById('homeCountdownBox');
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
             if (homeCountdownContainer) {
@@ -783,25 +796,32 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi
+            // Sondaggi Interattivi con Nome Bambino
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
-                const votes = item.votes || {};
-                const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+                const votesMap = item.votes || {};
+                let totalVotes = 0;
+                for (const opt in votesMap) {
+                    if (Array.isArray(votesMap[opt])) totalVotes += votesMap[opt].length;
+                }
                 
                 let optionsHtml = '';
-                for (const [optionName, count] of Object.entries(votes)) {
+                for (const [optionName, namesList] of Object.entries(votesMap)) {
+                    const count = Array.isArray(namesList) ? namesList.length : 0;
                     const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    const namesStr = Array.isArray(namesList) && namesList.length > 0 ? namesList.join(', ') : 'Nessuna adesione';
+                    
                     optionsHtml += `
-                        <div class="space-y-1 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-                            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
-                                <span class="flex items-center">
-                                    <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-xl mr-2.5 transition shadow-sm">Vota</button>
-                                    ${escapeHtml(optionName)}
-                                </span>
-                                <span class="text-indigo-600 font-black">${count} voti (${percentage}%)</span>
+                        <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <span class="font-bold text-slate-800 text-sm">${escapeHtml(optionName)}</span>
+                                <button onclick="votePoll('${item.id}', '${escapeHtml(optionName)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Vota qui</button>
                             </div>
-                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
                                 <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] text-slate-500">
+                                <span>Bambini: <strong class="text-indigo-600">${escapeHtml(namesStr)}</strong></span>
+                                <span class="font-black text-indigo-700">${count} voti (${percentage}%)</span>
                             </div>
                         </div>
                     `;
@@ -822,10 +842,20 @@
                             ${getAdminButtons('sondaggi', item.id)}
                         </div>
                     </div>
-                    <div class="space-y-2 pt-1">
+                    
+                    <!-- Campo inserimento nome bambino -->
+                    <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center gap-2">
+                        <div class="flex items-center space-x-2 w-full">
+                            <i class="fa-solid fa-child text-indigo-600 text-base"></i>
+                            <input type="text" id="voter_${item.id}" placeholder="Inserisci il nome del bambino/a..." class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        </div>
+                        <span class="text-[11px] text-indigo-700 font-bold whitespace-hidden sm:whitespace-nowrap">Scrivi prima il nome</span>
+                    </div>
+
+                    <div class="space-y-2.5 pt-1">
                         ${optionsHtml}
                     </div>
-                    <div class="text-[11px] text-slate-400 font-bold text-right">Totale partecipanti: ${totalVotes}</div>
+                    <div class="text-[11px] text-slate-400 font-bold text-right">Totale votanti: ${totalVotes}</div>
                 </div>`;
             });
 
