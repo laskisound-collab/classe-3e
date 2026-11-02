@@ -96,14 +96,14 @@
             
             <!-- Dropdown Area Relax (Ruota & Snake) -->
             <div class="relative inline-block text-left" id="relaxDropdownContainer">
-                <button type="button" onclick="toggleRelaxDropdown()" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" id="relaxDropdownBtn">
+                <button type="button" onclick="toggleRelaxDropdown(event)" class="tab-btn py-2 px-3.5 text-xs sm:text-sm font-bold rounded-2xl text-slate-600 hover:bg-slate-100/80 whitespace-nowrap transition flex items-center space-x-2" id="relaxDropdownBtn">
                     <i class="fa-solid fa-gamepad text-pink-500"></i><span>Area Relax</span><i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
                 </button>
                 <div id="relaxDropdownMenu" class="hidden origin-top-right absolute left-0 mt-2 w-48 rounded-2xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 focus:outline-none z-50 p-1">
-                    <button onclick="switchTab('ruota'); toggleRelaxDropdown();" class="relax-sub-btn w-full text-left px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition flex items-center space-x-2" data-tab="ruota">
+                    <button onclick="switchTab('ruota'); toggleRelaxDropdown(event);" class="relax-sub-btn w-full text-left px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition flex items-center space-x-2" data-tab="ruota">
                         <i class="fa-solid fa-dharmachakra text-pink-500"></i><span>Ruota Festa</span>
                     </button>
-                    <button onclick="switchTab('snake'); toggleRelaxDropdown();" class="relax-sub-btn w-full text-left px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition flex items-center space-x-2" data-tab="snake">
+                    <button onclick="switchTab('snake'); toggleRelaxDropdown(event);" class="relax-sub-btn w-full text-left px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition flex items-center space-x-2" data-tab="snake">
                         <i class="fa-solid fa-gamepad text-emerald-500"></i><span>Snake 3E</span>
                     </button>
                 </div>
@@ -703,7 +703,8 @@
         });
 
         // Gestione apertura/chiusura menu tendina Area Relax
-        function toggleRelaxDropdown() {
+        function toggleRelaxDropdown(event) {
+            if (event) event.stopPropagation();
             const menu = document.getElementById('relaxDropdownMenu');
             if (menu) menu.classList.toggle('hidden');
         }
