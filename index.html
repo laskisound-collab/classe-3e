@@ -55,6 +55,9 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-indigo-50/40 to-blue-50/30 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
+    <!-- Container Notifiche Admin -->
+    <div id="adminNotificationContainer" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none max-w-sm w-full px-4"></div>
+
     <!-- Header con Orologio in Tempo Reale -->
     <header class="bg-gradient-to-r from-indigo-950 via-indigo-900 to-blue-950 text-white shadow-xl sticky top-0 z-50 backdrop-blur-md bg-opacity-95 border-b border-white/10">
         <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -182,20 +185,6 @@
                     <i class="fa-solid fa-plus"></i><span>Pubblica Menu / PDF</span>
                 </button>
             </div>
-
-            <!-- Box Dinamico Ufficiale PDF -->
-            <div id="todayMenuWidget" class="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/30 space-y-4">
-                <div class="flex items-center justify-between">
-                    <span class="bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-utensils"></i> Menu Mensa Ufficiale
-                    </span>
-                    <span id="todayDateBadge" class="text-xs text-emerald-200 font-bold"></span>
-                </div>
-                <div id="todayMenuContent" class="text-sm font-medium text-emerald-50 leading-relaxed">
-                    Caricamento menu...
-                </div>
-            </div>
-
             <div id="list-mensa" class="space-y-3.5"></div>
         </section>
 
@@ -582,6 +571,35 @@
         let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {}, stats: { visits: 0 } };
         let activeVoterSession = {}; 
         let fondoChartInstance = null;
+        let previousDataSnapshot = null;
+
+        // Funzione per mostrare notifiche (esclusive Admin)
+        function showAdminNotification(message, type = 'success') {
+            if (!isAdmin) return; // Mostra la notifica solo se l'utente è admin
+            const container = document.getElementById('adminNotificationContainer');
+            if (!container) return;
+
+            const notif = document.createElement('div');
+            notif.className = `pointer-events-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border ${type === 'success' ? 'border-emerald-500/50' : 'border-indigo-500/50'} flex items-center justify-between space-x-3 transition transform translate-y-2 opacity-0 duration-300`;
+            notif.innerHTML = `
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-8 h-8 rounded-xl ${type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'} flex items-center justify-center text-sm shrink-0">
+                        <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-bell'}"></i>
+                    </span>
+                    <span class="text-xs font-bold tracking-wide">${escapeHtml(message)}</span>
+                </div>
+            `;
+            container.appendChild(notif);
+
+            setTimeout(() => {
+                notif.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                notif.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => notif.remove(), 300);
+            }, 4000);
+        }
 
         let snakeCanvas, snakeCtx;
         let snake = [];
@@ -608,6 +626,19 @@
             onValue(dataRef, (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
+                    if (previousDataSnapshot) {
+                        // Verifica se ci sono nuovi elementi inseriti per notificare l'Admin
+                        Object.keys(val).forEach(section => {
+                            if (section !== 'stats' && typeof val[section] === 'object' && val[section] !== null) {
+                                const prevCount = previousDataSnapshot[section] ? Object.keys(previousDataSnapshot[section]).length : 0;
+                                const newCount = Object.keys(val[section]).length;
+                                if (newCount > prevCount) {
+                                    showAdminNotification(`Nuovo elemento pubblicato in: ${section.toUpperCase()}!`, 'success');
+                                }
+                            }
+                        });
+                    }
+                    previousDataSnapshot = JSON.parse(JSON.stringify(val));
                     dbData = { ...dbData, ...val };
                     checkAndCleanExpiredCompiti();
                 }
@@ -875,6 +906,7 @@
                 if (adminLoginForm) adminLoginForm.classList.add('hidden');
                 if (adminLogoutDiv) adminLogoutDiv.classList.remove('hidden');
                 localStorage.setItem('isAdmin_3e', 'true');
+                showAdminNotification("Modalità Admin attivata: notifiche abilitate.", "success");
             } else {
                 adminOnlyElements.forEach(el => el.classList.add('hidden'));
                 if (adminIcon) adminIcon.className = "fa-solid fa-lock text-xs text-amber-300";
@@ -1201,32 +1233,6 @@
             if (homeCDHtml) homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
         }, 1000);
 
-        // --- VISUALIZZAZIONE DIRETTA PDF NEL BOX IN ALTO ---
-        function renderTodayMenu() {
-            const todayWidget = document.getElementById('todayMenuContent');
-            const dateBadge = document.getElementById('todayDateBadge');
-            if (!todayWidget || !dateBadge) return;
-
-            const now = new Date();
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            dateBadge.innerText = now.toLocaleDateString('it-IT', options);
-
-            const mensaItems = dbData.mensa ? Object.values(dbData.mensa) : [];
-            if (mensaItems.length === 0) {
-                todayWidget.innerHTML = `<span class="text-emerald-200 italic">Nessun menu PDF pubblicato al momento. Clicca su "+ Pubblica Menu / PDF" per aggiungerlo.</span>`;
-                return;
-            }
-
-            const latestMensa = mensaItems.sort((a, b) => b.createdAt - a.createdAt)[0];
-            const fileLinkHtml = latestMensa.fileUrl ? `<div class="pt-2"><a href="${escapeHtml(latestMensa.fileUrl)}" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-emerald-800 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold transition border border-emerald-600 shadow-sm"><i class="fa-solid fa-file-pdf"><span>Apri Menu Mensa Ufficiale</span></i></a></div>` : '';
-
-            todayWidget.innerHTML = `
-                <strong class="text-white text-base block mb-1">${escapeHtml(latestMensa.title)}</strong>
-                <p class="text-xs text-emerald-100 font-medium mb-2">${escapeHtml(latestMensa.details || 'Menu ufficiale aggiornato per la classe.')}</p>
-                ${fileLinkHtml}
-            `;
-        }
-
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
@@ -1234,9 +1240,6 @@
             const summaryTextEl = document.getElementById('homeworkSummaryText');
             if (summaryTextEl) summaryTextEl.innerText = compitiArr.length === 0 ? "Nessun compito registrato al momento." : `Ci sono ${compitiArr.length} attività/compiti attivi nel diario di classe.`;
 
-            renderTodayMenu();
-
-            // Countdown Home
             const homeCountdownContainer = document.getElementById('homeCountdownBox');
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
             if (homeCountdownContainer) {
