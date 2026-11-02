@@ -176,12 +176,26 @@
                         <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-utensils"></i></span>
                         Menu Mensa Scolastica
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Consulta il PDF o la foto ufficiale del menu</p>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Consulta il menu della settimana (Lunedì-Venerdì) e i dettagli</p>
                 </div>
                 <button onclick="openAddModal('mensa')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Pubblica Menu (PDF/Link)</span>
                 </button>
             </div>
+
+            <!-- Box Dinamico Menu Automatico -->
+            <div id="todayMenuWidget" class="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-emerald-500/30 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span id="menuModeBadge" class="bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-utensils"></i> Menu del Giorno in Tavola
+                    </span>
+                    <span id="todayDateBadge" class="text-xs text-emerald-200 font-bold"></span>
+                </div>
+                <div id="todayMenuContent" class="text-sm font-medium text-emerald-50 leading-relaxed">
+                    Caricamento menu...
+                </div>
+            </div>
+
             <div id="list-mensa" class="space-y-3.5"></div>
         </section>
 
@@ -527,7 +541,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelDetails">Dettagli / Opzioni (una per riga)</label>
-                    <textarea id="inputDetails" rows="4" placeholder="Opzione 1&#10;Opzione 2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium"></textarea>
+                    <textarea id="inputDetails" rows="4" placeholder="Lunedì: Pasta al pomodoro&#10;Martedì: Risotto" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner font-medium"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-black text-slate-700 mb-1.5" id="labelFileUrl">Link Web / Link Registro (puoi metterene più di uno separati da spazio o virgola)</label>
@@ -1187,12 +1201,80 @@
             if (homeCDHtml) homeCDHtml.innerHTML = `<span class="text-2xl sm:text-3xl font-black ${isUrgent ? 'text-amber-300 animate-pulse' : 'text-emerald-400'} tracking-tight">${t.days}g ${t.hours}h ${t.minutes}m ${t.seconds}s</span>`;
         }, 1000);
 
+        function renderTodayMenu() {
+            const todayWidget = document.getElementById('todayMenuContent');
+            const dateBadge = document.getElementById('todayDateBadge');
+            const modeBadge = document.getElementById('menuModeBadge');
+            if (!todayWidget || !dateBadge || !modeBadge) return;
+
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0 = Domenica, 1 = Lunedì, ..., 6 = Sabato
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            dateBadge.innerText = now.toLocaleDateString('it-IT', options);
+
+            const mensaItems = dbData.mensa ? Object.values(dbData.mensa) : [];
+            if (mensaItems.length === 0) {
+                todayWidget.innerHTML = `<span class="text-emerald-200 italic">Nessun menu pubblicato al momento.</span>`;
+                modeBadge.innerHTML = `<i class="fa-solid fa-utensils"></i> Menu Mensa`;
+                return;
+            }
+
+            const latestMenu = mensaItems.sort((a, b) => b.createdAt - a.createdAt)[0];
+            const details = latestMenu.details || '';
+            const righe = details.split('\n').map(r => r.trim()).filter(r => r.length > 0);
+
+            // Weekend: Sabato (6) o Domenica (0) mostra la programmazione in arrivo
+            if (dayOfWeek === 6 || dayOfWeek === 0) {
+                modeBadge.innerHTML = `<i class="fa-solid fa-forward"></i> Anteprima Menu Prossima Settimana`;
+                todayWidget.innerHTML = `
+                    <strong class="text-white text-base block mb-2">${escapeHtml(latestMenu.title)}</strong>
+                    <div class="bg-emerald-950/60 p-3.5 rounded-2xl border border-emerald-500/20 text-emerald-100 space-y-1">
+                        <p class="text-xs text-amber-300 font-bold mb-1"><i class="fa-solid fa-circle-info"></i> È weekend: ecco il quadro per la ripresa:</p>
+                        ${righe.slice(0, 5).map(r => `<div>• ${escapeHtml(r)}</div>`).join('')}
+                    </div>
+                `;
+                return;
+            }
+
+            // Giorni feriali (Lunedì - Venerdì)
+            const giorniMap = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+            const oggiNome = giorniMap[dayOfWeek];
+            let piattoTrovato = '';
+
+            for (const riga of righe) {
+                if (riga.toLowerCase().includes(oggiNome)) {
+                    piattoTrovato = riga;
+                    break;
+                }
+            }
+
+            modeBadge.innerHTML = `<i class="fa-solid fa-utensils"></i> Menu del Giorno (${oggiNome.toUpperCase()})`;
+            if (piattoTrovato) {
+                todayWidget.innerHTML = `
+                    <strong class="text-white text-base block mb-1">${escapeHtml(latestMenu.title)}</strong>
+                    <div class="bg-emerald-950/60 p-3.5 rounded-2xl border border-emerald-500/20 text-emerald-100 text-sm font-bold">
+                        ${escapeHtml(piattoTrovato)}
+                    </div>
+                `;
+            } else {
+                todayWidget.innerHTML = `
+                    <strong class="text-white text-base block mb-1">${escapeHtml(latestMenu.title)}</strong>
+                    <p class="text-xs text-emerald-200 mt-1">Menu settimanale attivo (Lunedì - Venerdì):</p>
+                    <div class="bg-emerald-950/60 p-3 rounded-2xl border border-emerald-500/20 text-xs text-emerald-100 space-y-1 mt-2">
+                        ${righe.slice(0, 5).map(r => `<div>• ${escapeHtml(r)}</div>`).join('')}
+                    </div>
+                `;
+            }
+        }
+
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
             const compitiArr = Object.values(dbData.compiti || {});
             const summaryTextEl = document.getElementById('homeworkSummaryText');
             if (summaryTextEl) summaryTextEl.innerText = compitiArr.length === 0 ? "Nessun compito registrato al momento." : `Ci sono ${compitiArr.length} attività/compiti attivi nel diario di classe.`;
+
+            renderTodayMenu();
 
             // Countdown Home
             const homeCountdownContainer = document.getElementById('homeCountdownBox');
@@ -1226,7 +1308,7 @@
                 }
             }
 
-            // Compiti (Con Link 1, Link 2, ecc. in WhatsApp)
+            // Compiti
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
                 
@@ -1293,9 +1375,9 @@
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
-                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-utensils"></i> Mensa</span>
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-utensils"></i> Mensa (Lunedì - Venerdì)</span>
                         <h3 class="font-black text-slate-900 text-base">${escapeHtml(item.title)}</h3>
-                        ${item.details ? `<p class="text-sm text-slate-600 font-medium leading-relaxed">${escapeHtml(item.details)}</p>` : ''}
+                        ${item.details ? `<p class="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-line">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
