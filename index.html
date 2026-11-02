@@ -42,7 +42,6 @@
             50% { opacity: 0.5; }
         }
         .live-clock { animation: pulse-subtle 2s infinite; }
-        /* Scrollbar personalizzata pulita */
         ::-webkit-scrollbar { height: 6px; width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -52,7 +51,7 @@
 <body class="bg-gradient-to-br from-slate-50 via-indigo-50/40 to-blue-50/30 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
     <!-- Header con Orologio in Tempo Reale -->
-    <header class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-blue-900 text-white shadow-xl sticky top-0 z-50 backdrop-blur-md bg-opacity-95 border-b border-white/10">
+    <header class="bg-gradient-to-r from-indigo-950 via-indigo-900 to-blue-950 text-white shadow-xl sticky top-0 z-50 backdrop-blur-md bg-opacity-95 border-b border-white/10">
         <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3.5">
                 <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white p-2.5 rounded-2xl font-black text-xl shadow-lg shadow-indigo-900/40 flex items-center justify-center w-12 h-12 border border-white/20">
@@ -101,6 +100,22 @@
         <!-- SEZIONE COMPITI (HOME) -->
         <section id="compiti" class="tab-content active space-y-4">
             <div id="homeCountdownBox"></div>
+
+            <!-- Box Riepilogo Compiti in Evidenza -->
+            <div id="homeworkSummaryWidget" class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white p-5 rounded-3xl shadow-md flex items-center justify-between border border-indigo-700/50">
+                <div class="flex items-center space-x-3.5">
+                    <div class="bg-white/10 backdrop-blur-md p-3 rounded-2xl text-indigo-200 border border-white/20">
+                        <i class="fa-solid fa-clipboard-list text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-sm tracking-tight text-white">Riepilogo Compiti Attivi</h4>
+                        <p class="text-xs text-indigo-200 font-medium mt-0.5" id="homeworkSummaryText">Caricamento stato...</p>
+                    </div>
+                </div>
+                <div class="hidden sm:block">
+                    <span class="bg-indigo-500/30 border border-indigo-400/40 text-indigo-100 text-xs font-bold px-3.5 py-1.5 rounded-xl">Aggiornato in tempo reale</span>
+                </div>
+            </div>
 
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 gap-3">
                 <div>
@@ -786,6 +801,12 @@
             `;
         }
 
+        function isNewItem(createdAt) {
+            if (!createdAt) return false;
+            const diffHours = (Date.now() - createdAt) / (1000 * 60 * 60);
+            return diffHours <= 24;
+        }
+
         function getTimeRemaining(endtime) {
             const total = Date.parse(endtime) - Date.parse(new Date());
             if (total <= 0) {
@@ -820,6 +841,19 @@
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
 
+            // --- Aggiornamento Box Riepilogo Compiti ---
+            const compitiObj = dbData.compiti || {};
+            const compitiArr = Object.values(compitiObj);
+            const totalCompiti = compitiArr.length;
+            const summaryTextEl = document.getElementById('homeworkSummaryText');
+            if (summaryTextEl) {
+                if (totalCompiti === 0) {
+                    summaryTextEl.innerText = "Nessun compito registrato al momento.";
+                } else {
+                    summaryTextEl.innerText = `Ci sono ${totalCompiti} attività/compiti registrati nel diario di classe.`;
+                }
+            }
+
             // --- Countdown Home ---
             const homeCountdownContainer = document.getElementById('homeCountdownBox');
             const countdownData = dbData.countdown ? Object.values(dbData.countdown) : [];
@@ -851,14 +885,18 @@
                 }
             }
 
-            // Compiti
+            // Compiti (Con Badge "NUOVO" se inserito nelle ultime 24 ore)
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
                 const waText = encodeURIComponent(`📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n${item.date ? 'Scadenza: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link/Allegati: ' + item.fileUrl : ''}`);
+                const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs ml-2 animate-pulse">Nuovo</span>` : '';
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md hover:border-slate-300">
                     <div class="space-y-2.5 flex-1">
-                        <span class="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100"><i class="fa-solid fa-bookmark text-indigo-500"></i>${escapeHtml(item.materia || 'Compito')}</span>
+                        <div class="flex items-center flex-wrap gap-2">
+                            <span class="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100"><i class="fa-solid fa-bookmark text-indigo-500"></i>${escapeHtml(item.materia || 'Compito')}</span>
+                            ${badgeNew}
+                        </div>
                         <h3 class="font-black text-slate-900 text-base">${escapeHtml(item.title)}</h3>
                         ${item.date ? `<p class="text-xs text-indigo-600 font-bold flex items-center gap-1.5"><i class="fa-regular fa-clock"></i>Scadenza: ${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-slate-600 font-medium leading-relaxed">${escapeHtml(item.details)}</p>` : ''}
@@ -888,10 +926,14 @@
             // Menu Mensa
             renderCustomSection('mensa', 'list-mensa', item => {
                 const waText = encodeURIComponent(`🍽️ *Menu Mensa 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}${item.fileUrl ? 'Link Menu (PDF/Foto): ' + item.fileUrl : ''}`);
+                const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs ml-2 animate-pulse">Nuovo</span>` : '';
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md hover:border-slate-300">
                     <div class="space-y-2.5 flex-1">
-                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-utensils"></i> Mensa</span>
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-utensils"></i> Mensa</span>
+                            ${badgeNew}
+                        </div>
                         <h3 class="font-black text-slate-900 text-base">${escapeHtml(item.title)}</h3>
                         ${item.details ? `<p class="text-sm text-slate-600 font-medium leading-relaxed">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
@@ -944,7 +986,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con design pulito ed elegante)
+            // Sondaggi Interattivi
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const optionsArr = item.options || [];
                 const votesMap = item.votes || {};
@@ -1075,13 +1117,17 @@
                 </div>`;
             });
 
-            // Avvisi
+            // Avvisi (Con Badge "NUOVO" se inserito nelle ultime 24 ore)
             renderCustomSection('avvisi', 'list-avvisi', item => {
                 const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}\n${item.fileUrl ? 'Allegati: ' + item.fileUrl : ''}`);
+                const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs ml-2 animate-pulse">Nuovo</span>` : '';
                 return `
                 <div class="bg-gradient-to-br from-amber-50/80 via-amber-50/40 to-white border border-amber-200/80 p-5 rounded-3xl shadow-sm flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
-                        <h3 class="font-black text-amber-950 text-base flex items-center gap-2"><span class="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs shadow-xs"><i class="fa-solid fa-triangle-exclamation"></i></span>${escapeHtml(item.title)}</h3>
+                        <div class="flex items-center flex-wrap gap-2">
+                            <h3 class="font-black text-amber-950 text-base flex items-center gap-2"><span class="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs shadow-xs"><i class="fa-solid fa-triangle-exclamation"></i></span>${escapeHtml(item.title)}</h3>
+                            ${badgeNew}
+                        </div>
                         ${item.date ? `<p class="text-xs text-amber-700 font-bold">${new Date(item.date).toLocaleString('it-IT')}</p>` : ''}
                         ${item.details ? `<p class="text-sm text-amber-950/90 font-medium leading-relaxed">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
