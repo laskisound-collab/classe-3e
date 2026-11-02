@@ -441,6 +441,14 @@
             });
         });
 
+        // Gestione apertura automatica della sezione in base all'hash nell'URL (es. #sondaggi)
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                switchTab(hash);
+            }
+        });
+
         // Funzione per eliminare automaticamente i compiti 12 ore dopo la scadenza
         function checkAndCleanExpiredCompiti() {
             if (!dbData.compiti) return;
@@ -527,6 +535,8 @@
                 activeBtn.classList.add('text-indigo-600', 'bg-indigo-50/80', 'shadow-sm');
                 activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100/80');
             }
+            // Aggiorna l'URL senza ricaricare la pagina
+            history.replaceState(null, '', '#' + tabId);
         }
 
         function openAddModal(section, itemId = null) {
@@ -730,7 +740,10 @@
             const titleEl = document.getElementById('votersModalTitle');
             const contentEl = document.getElementById('votersListContent');
             const whatsappContainer = document.getElementById('modalWhatsAppContainer');
-            const appUrl = window.location.href;
+            
+            // Pulisce l'URL rimuovendo eventuali hash esistenti e aggiunge #sondaggi
+            let cleanBaseUrl = window.location.href.split('#')[0];
+            const appUrl = cleanBaseUrl + '#sondaggi';
 
             let summaryTextForWA = `📊 *Sondaggio 3E: ${poll.title}*\n\n`;
 
@@ -781,7 +794,7 @@
                 contentEl.innerHTML = summaryHtml || `<p class="text-slate-400 text-xs text-center py-4 font-medium">Nessun voto registrato finora.</p>`;
             }
 
-            summaryTextForWA += `\n🔗 *Vota o consulta qui:* ${appUrl}`;
+            summaryTextForWA += `\n🔗 *Vota direttamente qui:* ${appUrl}`;
 
             const encodedWA = encodeURIComponent(summaryTextForWA.trim());
             whatsappContainer.innerHTML = `
@@ -1015,7 +1028,7 @@
                 </div>`;
             });
 
-            // Sondaggi Interattivi (Con condivisione WhatsApp inclusiva di link)
+            // Sondaggi Interattivi (Con condivisione WhatsApp mirata alla sezione sondaggi)
             renderCustomSection('sondaggi', 'list-sondaggi', item => {
                 const optionsArr = item.options || [];
                 const votesMap = item.votes || {};
@@ -1063,7 +1076,8 @@
                     `;
                 });
 
-                const appUrl = window.location.href;
+                let cleanBaseUrl = window.location.href.split('#')[0];
+                const appUrl = cleanBaseUrl + '#sondaggi';
                 const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}\n\n🔗 *Vota o consulta qui:* ${appUrl}`);
 
                 let voterSectionHtml = '';
