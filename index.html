@@ -173,7 +173,6 @@
 
         <!-- SEZIONE MENU MENSA -->
         <section id="mensa" class="tab-content space-y-4">
-            <!-- WIDGET MENU DEL GIORNO AUTOMATICO (Comune dell'Aquila - Novembre 2026) -->
             <div id="menuDelGiornoContainer"></div>
 
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80">
@@ -358,7 +357,7 @@
 
         <!-- SEZIONE FONDO CASSA -->
         <section id="fondo" class="tab-content space-y-4">
-            <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 gap-3">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm"><i class="fa-solid fa-wallet"></i></span>
@@ -366,16 +365,37 @@
                     </h2>
                     <p class="text-xs text-slate-500 font-medium mt-0.5">Bilancio e grafici di spesa trasparenti</p>
                 </div>
-                <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
-                    <i class="fa-solid fa-plus"></i><span>Nuovo Movimento</span>
-                </button>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="promptSetFondoIniziale()" class="admin-only hidden bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 border border-amber-200">
+                        <i class="fa-solid fa-coins"></i><span>Imposta Totale Raccolto</span>
+                    </button>
+                    <button onclick="openAddModal('fondo')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-plus"></i><span>Nuovo Movimento</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Box Riepilogo Saldo -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-indigo-900 to-indigo-950 text-white p-5 rounded-3xl shadow-md border border-indigo-700/40">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-300">Totale Raccolto Iniziale</span>
+                    <div class="text-2xl font-black mt-1" id="displayFondoIniziale">0 €</div>
+                </div>
+                <div class="bg-gradient-to-br from-rose-900 to-rose-950 text-white p-5 rounded-3xl shadow-md border border-rose-700/40">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-rose-300">Totale Spese Sostenute</span>
+                    <div class="text-2xl font-black mt-1" id="displayTotaleSpese">0 €</div>
+                </div>
+                <div class="bg-gradient-to-br from-emerald-800 to-teal-950 text-white p-5 rounded-3xl shadow-md border border-emerald-600/40">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300">Saldo Attuale in Cassa</span>
+                    <div class="text-2xl font-black mt-1" id="displaySaldoAttuale">0 €</div>
+                </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 <div class="md:col-span-1 flex flex-col justify-center space-y-3">
                     <span class="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-amber-100 self-start">Trasparenza Finanziaria</span>
                     <h3 class="font-black text-slate-900 text-base">Riepilogo Spese</h3>
-                    <p class="text-xs text-slate-500 font-medium leading-relaxed">Ecco la suddivisione visiva delle spese sostenute con il fondo cassa di classe.</p>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed">Suddivisione visiva delle spese sostenute prelevate dal fondo cassa.</p>
                 </div>
                 <div class="md:col-span-2 flex justify-center h-56">
                     <canvas id="fondoChart"></canvas>
@@ -574,14 +594,13 @@
         updateClock();
 
         let isAdmin = localStorage.getItem('isAdmin_3e') === 'true';
-        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {}, stats: { visits: 0 } };
+        let dbData = { compiti: {}, orario: {}, mensa: {}, libri: {}, countdown: {}, sondaggi: {}, fondo: {}, fondoIniziale: 0, avvisi: {}, galleria: {}, linkutili: {}, compleanni: {}, promemoria: {}, snakeScores: {}, stats: { visits: 0 } };
         let activeVoterSession = {}; 
         let fondoChartInstance = null;
         let previousDataSnapshot = null;
 
         // MENU AUTUNNALE COMUNE DELL'AQUILA (Novembre 2026 - Estratto Ufficiale Vivenda)
         const menuMensaComune = {
-            // Settimana 1: date 02/11 - 06/11 e 30/11
             settimana1: {
                 1: { giorno: "Lunedì", primo: "Pasta olio e Parmigiano", secondo: "Platessa gratinata", contorno: "Piselli al tegame" },
                 2: { giorno: "Martedì", primo: "Pasta al pomodoro", secondo: "Robiola", contorno: "Insalata di carote, lattuga e finocchi" },
@@ -589,7 +608,6 @@
                 4: { giorno: "Giovedì", primo: "Quadrucci in brodo vegetale", secondo: "Strascetti di tacchino alla salvia", contorno: "Finocchi gratinati" },
                 5: { giorno: "Venerdì", primo: "Pasta di farro al pomodoro", secondo: "Frittata al forno", contorno: "Fagiolini all'olio" }
             },
-            // Settimana 2: date 09/11 - 13/11
             settimana2: {
                 1: { giorno: "Lunedì", primo: "Riso e piselli", secondo: "Ciliegine di mozzarella", contorno: "Insalata verde" },
                 2: { giorno: "Martedì", primo: "Sagnette e fagioli", secondo: "Bocconcini di Pollo gratinati", contorno: "Bieta all'olio" },
@@ -597,7 +615,6 @@
                 4: { giorno: "Giovedì", primo: "Pasta al ragù di pesce fresco dell'Adriatico", secondo: "Frittata al forno + Dolce*", contorno: "Carote gratinate" },
                 5: { giorno: "Venerdì", primo: "Pasta olio e Parmigiano", secondo: "Polpette di maiale", contorno: "Patate al forno" }
             },
-            // Settimana 3: date 16/11 - 20/11
             settimana3: {
                 1: { giorno: "Lunedì", primo: "Pasta integrale al pomodoro", secondo: "Frittata con spinaci al forno", contorno: "Fagiolini" },
                 2: { giorno: "Martedì", primo: "Gnocchetti sardi ricotta e pomodoro", secondo: "Polpette di pollo", contorno: "Bieta all'olio" },
@@ -605,7 +622,6 @@
                 4: { giorno: "Giovedì", primo: "Pasta olio e Parmigiano", secondo: "Robiola", contorno: "Insalata verde" },
                 5: { giorno: "Venerdì", primo: "Passato di legumi con orzo", secondo: "Platessa gratinata con nocciole", contorno: "Spinaci all'olio" }
             },
-            // Settimana 4: date 23/11 - 27/11
             settimana4: {
                 1: { giorno: "Lunedì", primo: "Pasta al pomodoro", secondo: "Spezzatino di maiale con patate", contorno: "Frutta di stagione" },
                 2: { giorno: "Martedì", primo: "Riso olio e parmigiano", secondo: "Merluzzo Gratinato", contorno: "Fagiolini all'olio" },
@@ -620,9 +636,9 @@
             if (!container) return;
 
             const now = new Date();
-            const dayOfWeek = now.getDay(); // 1=Lun, ..., 5=Ven
+            const dayOfWeek = now.getDay();
             const currentDateNum = now.getDate();
-            const currentMonth = now.getMonth(); // 10 = Novembre
+            const currentMonth = now.getMonth();
 
             if (dayOfWeek < 1 || dayOfWeek > 5 || currentMonth !== 10) {
                 container.innerHTML = `
@@ -633,7 +649,6 @@
                 return;
             }
 
-            // Calcolo automatico della settimana di Novembre 2026 in base al giorno del mese
             let settimanaKey = 'settimana1';
             if (currentDateNum >= 9 && currentDateNum <= 13) settimanaKey = 'settimana2';
             else if (currentDateNum >= 16 && currentDateNum <= 20) settimanaKey = 'settimana3';
@@ -738,7 +753,7 @@
                 if (val) {
                     if (previousDataSnapshot) {
                         Object.keys(val).forEach(section => {
-                            if (section !== 'stats' && typeof val[section] === 'object' && val[section] !== null) {
+                            if (section !== 'stats' && section !== 'fondoIniziale' && typeof val[section] === 'object' && val[section] !== null) {
                                 const prevCount = previousDataSnapshot[section] ? Object.keys(previousDataSnapshot[section]).length : 0;
                                 const newCount = Object.keys(val[section]).length;
                                 if (newCount > prevCount) {
@@ -754,6 +769,7 @@
                 renderAll();
                 renderSnakeLeaderboard();
                 updateVisitsCounter();
+                renderFondoChart();
             });
         });
 
@@ -770,6 +786,7 @@
             initSnakeCanvas();
             checkPlayerSessionUI();
             renderMenuDelGiorno();
+            renderFondoChart();
             if (isAdmin) requestBrowserNotificationPermission();
         });
 
@@ -1096,21 +1113,73 @@
             `;
         }
 
+        function extractAmount(text) {
+            if (!text) return 0;
+            const match = text.match(/(\d+)\s*€?/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function promptSetFondoIniziale() {
+            const currentVal = dbData.fondoIniziale || 0;
+            const res = prompt("Inserisci il totale dei fondi raccolti inizialmente (€):", currentVal);
+            if (res !== null) {
+                const parsed = parseFloat(res);
+                if (!isNaN(parsed)) {
+                    dbData.fondoIniziale = parsed;
+                    const { db, ref, set } = window.fbDB;
+                    set(ref(db, 'classe3e'), dbData).then(() => {
+                        renderFondoChart();
+                    });
+                } else {
+                    alert("Inserisci un numero valido!");
+                }
+            }
+        }
+
         function renderFondoChart() {
             const ctx = document.getElementById('fondoChart');
-            if (!ctx) return;
             const fondoData = dbData.fondo ? Object.values(dbData.fondo) : [];
-            let categorie = {};
+            let categorie = { 'Regali Maestri': 0, 'Gite & Trasporti': 0, 'Materiale Didattico': 0, 'Eventi Festa': 0 };
+            let totaleSpese = 0;
+            
             fondoData.forEach(item => {
-                let cat = item.materia || item.title || 'Altro';
-                if (cat.toLowerCase().includes('regal')) cat = 'Regali Maestri';
-                else if (cat.toLowerCase().includes('gita') || cat.toLowerCase().includes('bus')) cat = 'Gite & Trasporti';
-                else if (cat.toLowerCase().includes('materiale')) cat = 'Materiale Didattico';
-                else cat = 'Eventi e Varie';
-                categorie[cat] = (categorie[cat] || 0) + 1;
+                let text = (item.title + " " + (item.details || "")).toLowerCase();
+                let amount = extractAmount(item.title);
+                totaleSpese += amount;
+                
+                if (text.includes('regal') || text.includes('maestr') || text.includes('buono')) {
+                    categorie['Regali Maestri'] += amount;
+                } else if (text.includes('gita') || text.includes('bus') || text.includes('pullman') || text.includes('stiffe')) {
+                    categorie['Gite & Trasporti'] += amount;
+                } else if (text.includes('materiale') || text.includes('cancelleria') || text.includes('foggi') || text.includes('colla')) {
+                    categorie['Materiale Didattico'] += amount;
+                } else {
+                    categorie['Eventi Festa'] += amount;
+                }
             });
-            const labels = Object.keys(categorie).length > 0 ? Object.keys(categorie) : ['Regali Maestri', 'Gite', 'Materiale'];
-            const dataValues = Object.keys(categorie).length > 0 ? Object.values(categorie) : [1, 1, 1];
+
+            const fondoIniziale = dbData.fondoIniziale || 0;
+            const saldoAttuale = fondoIniziale - totaleSpese;
+
+            const elIniziale = document.getElementById('displayFondoIniziale');
+            const elSpese = document.getElementById('displayTotaleSpese');
+            const elSaldo = document.getElementById('displaySaldoAttuale');
+
+            if (elIniziale) elIniziale.innerText = fondoIniziale + ' €';
+            if (elSpese) elSpese.innerText = totaleSpese + ' €';
+            if (elSaldo) {
+                elSaldo.innerText = saldoAttuale + ' €';
+                elSaldo.className = `text-2xl font-black mt-1 ${saldoAttuale < 0 ? 'text-rose-300' : 'text-white'}`;
+            }
+
+            if (!ctx) return;
+            let labels = Object.keys(categorie);
+            let dataValues = Object.values(categorie);
+            let totalCatSum = dataValues.reduce((a, b) => a + b, 0);
+
+            if (totalCatSum === 0) {
+                dataValues = [1, 1, 1, 1];
+            }
 
             if (fondoChartInstance) fondoChartInstance.destroy();
             fondoChartInstance = new Chart(ctx, {
@@ -1119,7 +1188,7 @@
                     labels: labels,
                     datasets: [{
                         data: dataValues,
-                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'],
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899'],
                         borderWidth: 2,
                         borderColor: '#ffffff'
                     }]
@@ -1200,7 +1269,7 @@
                 closeAddModal();
                 saveBtn.innerText = "Pubblica";
                 saveBtn.disabled = false;
-                if(section === 'fondo') renderFondoChart();
+                renderFondoChart();
             });
         }
 
@@ -1300,7 +1369,7 @@
             if (confirm("Vuoi davvero eliminare questo elemento?")) {
                 const { db, ref, set } = window.fbDB;
                 delete dbData[section][id];
-                set(ref(db, 'classe3e'), dbData).then(() => { if(section === 'fondo') renderFondoChart(); });
+                set(ref(db, 'classe3e'), dbData).then(() => { renderFondoChart(); });
             }
         }
 
