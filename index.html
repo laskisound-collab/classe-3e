@@ -1261,6 +1261,7 @@
 
         function renderAll() {
             const selectedMateria = document.getElementById('filterMateria') ? document.getElementById('filterMateria').value : 'tutte';
+            const cleanBaseUrl = window.location.href.split('#')[0];
 
             const compitiArr = Object.values(dbData.compiti || {});
             const summaryTextEl = document.getElementById('homeworkSummaryText');
@@ -1300,8 +1301,6 @@
             // Compiti
             renderCustomSection('compiti', 'list-compiti', item => {
                 if (selectedMateria !== 'tutte' && item.materia !== selectedMateria) return '';
-                
-                const cleanBaseUrl = window.location.href.split('#')[0];
                 const appUrl = cleanBaseUrl + '#compiti';
                 
                 let waText = `📚 *Compito 3E (${item.materia || 'Generale'})*\n*${item.title}*\n`;
@@ -1317,7 +1316,6 @@
                     }
                 }
                 waText += `\n📲 *Verifica sulla Bacheca di Classe:* ${appUrl}`;
-                
                 const encodedWA = encodeURIComponent(waText.trim());
                 const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-2 animate-pulse">Nuovo</span>` : '';
                 
@@ -1356,11 +1354,13 @@
 
             // Menu Mensa
             renderCustomSection('mensa', 'list-mensa', item => {
-                let waText = `🍽️ *Menu Mensa 3E (${item.title})*\n${item.details ? item.details : ''}\n`;
+                const appUrl = cleanBaseUrl + '#mensa';
+                let waText = `🍽️ *Menu Mensa 3E (${item.title})*\n${item.details ? item.details + '\n' : ''}`;
                 if (item.fileUrl) {
                     const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
                     if (urls.length > 0) waText += `🔗 *PDF Ufficiale:* ${urls[0]}\n`;
                 }
+                waText += `\n📲 *Vedi sulla Bacheca di Classe:* ${appUrl}`;
                 const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
@@ -1379,7 +1379,14 @@
 
             // Libri & Materiale
             renderCustomSection('libri', 'list-libri', item => {
-                const waText = encodeURIComponent(`📚 *Libri e Materiale 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#libri';
+                let waText = `📚 *Libri e Materiale 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}`;
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length > 0) waText += `🔗 *Link / Allegato:* ${urls[0]}\n`;
+                }
+                waText += `\n📲 *Verifica sulla Bacheca di Classe:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
@@ -1389,7 +1396,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('libri', item.id)}
                     </div>
                 </div>`;
@@ -1454,7 +1461,7 @@
                     `;
                 });
 
-                const appUrl = window.location.href.split('#')[0] + '#sondaggi';
+                const appUrl = cleanBaseUrl + '#sondaggi';
                 const waText = encodeURIComponent(`📊 *Sondaggio 3E*\n*${item.title}*\nTotale voti: ${totalVotes}\n\n🔗 *Vota qui:* ${appUrl}`);
 
                 let voterSectionHtml = !currentVoter ? `
@@ -1502,7 +1509,16 @@
 
             // Fondo Cassa
             renderCustomSection('fondo', 'list-fondo', item => {
-                const waText = encodeURIComponent(`💶 *Fondo Cassa 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#fondo';
+                let waText = `💶 *Fondo Cassa 3E*\n*${item.title}*\n`;
+                if (item.date) waText += `📅 Data: ${new Date(item.date).toLocaleDateString('it-IT')}\n`;
+                if (item.details) waText += `${item.details}\n`;
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length > 0) waText += `🔗 *Link / Scontrino:* ${urls[0]}\n`;
+                }
+                waText += `\n📲 *Verifica sulla Bacheca di Classe:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-center transition hover:shadow-md">
                     <div class="space-y-1.5 flex-1 pr-3">
@@ -1512,7 +1528,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-base"></i></a>
                         ${getAdminButtons('fondo', item.id)}
                     </div>
                 </div>`;
@@ -1520,7 +1536,16 @@
 
             // Avvisi
             renderCustomSection('avvisi', 'list-avvisi', item => {
-                const waText = encodeURIComponent(`⚠️ *Avviso Classe 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#avvisi';
+                let waText = `⚠️ *Avviso Classe 3E*\n*${item.title}*\n`;
+                if (item.date) waText += `⏰ Data: ${new Date(item.date).toLocaleString('it-IT')}\n`;
+                if (item.details) waText += `${item.details}\n`;
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length > 0) waText += `🔗 *Allegato:* ${urls[0]}\n`;
+                }
+                waText += `\n📲 *Leggi sulla Bacheca di Classe:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 const badgeNew = isNewItem(item.createdAt) ? `<span class="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-2 animate-pulse">Nuovo</span>` : '';
                 return `
                 <div class="bg-gradient-to-br from-amber-50/80 via-amber-50/40 to-white border border-amber-200/80 p-5 rounded-3xl shadow-sm flex justify-between items-start space-x-3 transition hover:shadow-md">
@@ -1534,7 +1559,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-white hover:bg-amber-100 text-emerald-600 p-3 rounded-2xl transition border border-amber-200 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-white hover:bg-amber-100 text-emerald-600 p-3 rounded-2xl transition border border-amber-200 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('avvisi', item.id)}
                     </div>
                 </div>`;
@@ -1542,14 +1567,21 @@
 
             // Galleria
             renderCustomSection('galleria', 'list-galleria', item => {
-                const waText = encodeURIComponent(`📸 *Galleria 3E*\n*${item.title}*\n${item.details ? item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#galleria';
+                let waText = `📸 *Galleria 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}`;
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length > 0) waText += `🔗 *Link / Foto:* ${urls[0]}\n`;
+                }
+                waText += `\n📲 *Guarda sulla Bacheca di Classe:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-3 flex flex-col justify-between transition hover:shadow-md">
                     <div class="space-y-1.5">
                         <div class="flex justify-between items-start">
                             <h3 class="font-black text-slate-900 text-base flex items-center gap-2"><span class="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs"><i class="fa-solid fa-image"></i></span>${escapeHtml(item.title)}</h3>
                             <div class="flex items-center space-x-1.5 shrink-0">
-                                <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                                <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-base"></i></a>
                                 ${getAdminButtons('galleria', item.id)}
                             </div>
                         </div>
@@ -1560,7 +1592,13 @@
             });
 
             // Link Utili
-            renderCustomSection('linkutili', 'list-linkutili', item => `
+            renderCustomSection('linkutili', 'list-linkutili', item => {
+                const appUrl = cleanBaseUrl + '#linkutili';
+                let waText = `🔗 *Link Utile 3E*\n*${item.title}*\n${item.details ? item.details + '\n' : ''}`;
+                if (item.fileUrl) waText += `🌐 ${item.fileUrl}\n`;
+                waText += `\n📲 *Accedi dalla Bacheca:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
+                return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex items-center justify-between transition hover:shadow-md">
                     <div class="space-y-1 pr-3 flex-1">
                         <h4 class="font-black text-slate-900 text-sm flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xs"><i class="fa-solid fa-bookmark"></i></span>${escapeHtml(item.title)}</h4>
@@ -1568,14 +1606,18 @@
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
                         ${item.fileUrl ? `<a href="${escapeHtml(item.fileUrl)}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-2xl transition shadow-md whitespace-nowrap flex items-center gap-1.5"><i class="fa-solid fa-arrow-right"></i>Visita</a>` : ''}
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Condividi su WhatsApp"><i class="fa-brands fa-whatsapp text-base"></i></a>
                         ${getAdminButtons('linkutili', item.id)}
                     </div>
                 </div>
-            `);
+            `;
+            });
 
             // Compleanni
             renderCustomSection('compleanni', 'list-compleanni', item => {
-                const waText = encodeURIComponent(`🎂 *Compleanno in Classe 3E*\nFesteggiamo insieme ${item.title}!\n${item.details ? 'Data: ' + item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#compleanni';
+                let waText = `🎂 *Compleanno in Classe 3E*\nFesteggiamo insieme ${item.title}!\n${item.details ? 'Data: ' + item.details + '\n' : ''}\n📲 *Vedi sulla Bacheca:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-center transition hover:shadow-md">
                     <div class="flex items-center space-x-3.5">
@@ -1586,7 +1628,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Auguri"><i class="fa-brands fa-whatsapp text-base"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2.5 rounded-2xl transition border border-emerald-100 flex items-center justify-center" title="Auguri"><i class="fa-brands fa-whatsapp text-base"></i></a>
                         ${getAdminButtons('compleanni', item.id)}
                     </div>
                 </div>`;
@@ -1594,7 +1636,16 @@
 
             // Promemoria
             renderCustomSection('promemoria', 'list-promemoria', item => {
-                const waText = encodeURIComponent(`⏰ *Promemoria 3E*\n*${item.title}*\n${item.date ? 'Data: ' + new Date(item.date).toLocaleString('it-IT') + '\n' : ''}${item.details ? item.details : ''}`);
+                const appUrl = cleanBaseUrl + '#promemoria';
+                let waText = `⏰ *Promemoria 3E*\n*${item.title}*\n`;
+                if (item.date) waText += `📅 Data: ${new Date(item.date).toLocaleString('it-IT')}\n`;
+                if (item.details) waText += `${item.details}\n`;
+                if (item.fileUrl) {
+                    const urls = item.fileUrl.split(/[\s,]+/).filter(u => u.trim().startsWith('http'));
+                    if (urls.length > 0) waText += `🔗 *Link / Allegato:* ${urls[0]}\n`;
+                }
+                waText += `\n📲 *Vedi sulla Bacheca di Classe:* ${appUrl}`;
+                const encodedWA = encodeURIComponent(waText.trim());
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
@@ -1604,7 +1655,7 @@
                         ${renderMultipleLinks(item.fileUrl)}
                     </div>
                     <div class="flex items-center space-x-2 shrink-0">
-                        <a href="https://api.whatsapp.com/send?text=${waText}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${encodedWA}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-3 rounded-2xl transition border border-emerald-100 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                         ${getAdminButtons('promemoria', item.id)}
                     </div>
                 </div>`;
