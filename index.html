@@ -173,6 +173,9 @@
 
         <!-- SEZIONE MENU MENSA -->
         <section id="mensa" class="tab-content space-y-4">
+            <!-- WIDGET MENU DEL GIORNO AUTOMATICO (Comune dell'Aquila - Novembre 2026) -->
+            <div id="menuDelGiornoContainer"></div>
+
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -576,6 +579,84 @@
         let fondoChartInstance = null;
         let previousDataSnapshot = null;
 
+        // MENU AUTUNNALE COMUNE DELL'AQUILA (Novembre 2026 - Estratto Ufficiale Vivenda)
+        const menuMensaComune = {
+            // Settimana 1: date 02/11 - 06/11 e 30/11
+            settimana1: {
+                1: { giorno: "Lunedì", primo: "Pasta olio e Parmigiano", secondo: "Platessa gratinata", contorno: "Piselli al tegame" },
+                2: { giorno: "Martedì", primo: "Pasta al pomodoro", secondo: "Robiola", contorno: "Insalata di carote, lattuga e finocchi" },
+                3: { giorno: "Mercoledì", primo: "Risotto con spinaci", secondo: "Polpette di Vitellone", contorno: "Carote all'olio" },
+                4: { giorno: "Giovedì", primo: "Quadrucci in brodo vegetale", secondo: "Strascetti di tacchino alla salvia", contorno: "Finocchi gratinati" },
+                5: { giorno: "Venerdì", primo: "Pasta di farro al pomodoro", secondo: "Frittata al forno", contorno: "Fagiolini all'olio" }
+            },
+            // Settimana 2: date 09/11 - 13/11
+            settimana2: {
+                1: { giorno: "Lunedì", primo: "Riso e piselli", secondo: "Ciliegine di mozzarella", contorno: "Insalata verde" },
+                2: { giorno: "Martedì", primo: "Sagnette e fagioli", secondo: "Bocconcini di Pollo gratinati", contorno: "Bieta all'olio" },
+                3: { giorno: "Mercoledì", primo: "Pasta al pomodoro", secondo: "Merluzzo gratinato", contorno: "Spinaci all'olio" },
+                4: { giorno: "Giovedì", primo: "Pasta al ragù di pesce fresco dell'Adriatico", secondo: "Frittata al forno + Dolce*", contorno: "Carote gratinate" },
+                5: { giorno: "Venerdì", primo: "Pasta olio e Parmigiano", secondo: "Polpette di maiale", contorno: "Patate al forno" }
+            },
+            // Settimana 3: date 16/11 - 20/11
+            settimana3: {
+                1: { giorno: "Lunedì", primo: "Pasta integrale al pomodoro", secondo: "Frittata con spinaci al forno", contorno: "Fagiolini" },
+                2: { giorno: "Martedì", primo: "Gnocchetti sardi ricotta e pomodoro", secondo: "Polpette di pollo", contorno: "Bieta all'olio" },
+                3: { giorno: "Mercoledì", primo: "Risotto alla Zucca", secondo: "Arista di maiale", contorno: "Cavolfiori gratinati" },
+                4: { giorno: "Giovedì", primo: "Pasta olio e Parmigiano", secondo: "Robiola", contorno: "Insalata verde" },
+                5: { giorno: "Venerdì", primo: "Passato di legumi con orzo", secondo: "Platessa gratinata con nocciole", contorno: "Spinaci all'olio" }
+            },
+            // Settimana 4: date 23/11 - 27/11
+            settimana4: {
+                1: { giorno: "Lunedì", primo: "Pasta al pomodoro", secondo: "Spezzatino di maiale con patate", contorno: "Frutta di stagione" },
+                2: { giorno: "Martedì", primo: "Riso olio e parmigiano", secondo: "Merluzzo Gratinato", contorno: "Fagiolini all'olio" },
+                3: { giorno: "Mercoledì", primo: "Pasta al pomodoro", secondo: "Burger di Lenticchie e Purè di carote + Cioccolato Bio", contorno: "Frutta" },
+                4: { giorno: "Giovedì", primo: "Timballo di Pasta al forno", secondo: "Formaggio / Secondo del giorno", contorno: "Insalatona cavolo cappuccio e carote" },
+                5: { giorno: "Venerdì", primo: "Pasta olio e Parmigiano", secondo: "Hamburger di pollo", contorno: "Insalata di lattuga finocchi e noci" }
+            }
+        };
+
+        function renderMenuDelGiorno() {
+            const container = document.getElementById('menuDelGiornoContainer');
+            if (!container) return;
+
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 1=Lun, ..., 5=Ven
+            const currentDateNum = now.getDate();
+            const currentMonth = now.getMonth(); // 10 = Novembre
+
+            if (dayOfWeek < 1 || dayOfWeek > 5 || currentMonth !== 10) {
+                container.innerHTML = `
+                    <div class="bg-slate-100 text-slate-600 p-4 rounded-2xl text-xs font-bold text-center border border-slate-200">
+                        🌿 Oggi è fine settimana o festivo: la mensa scolastica non è attiva.
+                    </div>
+                `;
+                return;
+            }
+
+            // Calcolo automatico della settimana di Novembre 2026 in base al giorno del mese
+            let settimanaKey = 'settimana1';
+            if (currentDateNum >= 9 && currentDateNum <= 13) settimanaKey = 'settimana2';
+            else if (currentDateNum >= 16 && currentDateNum <= 20) settimanaKey = 'settimana3';
+            else if (currentDateNum >= 23 && currentDateNum <= 27) settimanaKey = 'settimana4';
+            else if (currentDateNum >= 30) settimanaKey = 'settimana1';
+
+            const oggiMenu = menuMensaComune[settimanaKey][dayOfWeek];
+
+            container.innerHTML = `
+                <div class="bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 text-white p-5 rounded-3xl shadow-lg border border-emerald-500/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-emerald-200 border border-white/10">🍽️ Menu Ufficiale del Giorno (${oggiMenu.giorno})</span>
+                        <span class="text-xs text-emerald-200 font-bold">Comune dell'Aquila • Novembre</span>
+                    </div>
+                    <div class="space-y-1 text-xs sm:text-sm font-medium mt-2">
+                        <p>• <strong>Primo:</strong> ${oggiMenu.primo}</p>
+                        <p>• <strong>Secondo:</strong> ${oggiMenu.secondo}</p>
+                        <p>• <strong>Contorno:</strong> ${oggiMenu.contorno}</p>
+                    </div>
+                </div>
+            `;
+        }
+
         function requestBrowserNotificationPermission() {
             if ("Notification" in window && Notification.permission === "default" && isAdmin) {
                 Notification.requestPermission();
@@ -688,6 +769,7 @@
             if (hash) switchTab(hash);
             initSnakeCanvas();
             checkPlayerSessionUI();
+            renderMenuDelGiorno();
             if (isAdmin) requestBrowserNotificationPermission();
         });
 
