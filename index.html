@@ -173,15 +173,31 @@
 
         <!-- SEZIONE MENU MENSA -->
         <section id="mensa" class="tab-content space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 gap-3">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-utensils"></i></span>
+                        Menu Mensa Scolastica (Comune dell'Aquila)
+                    </h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Visualizza in tempo reale il menu del giorno (Normale o Leggero)</p>
+                </div>
+                <div>
+                    <select id="tipoMenuSelect" onchange="renderMenuDelGiorno()" class="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-2.5 text-xs font-black text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner">
+                        <option value="normale">🟢 Menu Normale</option>
+                        <option value="leggero">🥗 Menu Leggero</option>
+                    </select>
+                </div>
+            </div>
+
             <div id="menuDelGiornoContainer"></div>
 
             <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-utensils"></i></span>
-                        Menu Mensa Scolastica (Ufficiale PDF)
+                        <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-file-pdf"></i></span>
+                        Pubblicazioni & PDF Ufficiali
                     </h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Consultazione rapida dei menu pubblicati</p>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Elenchi e comunicazioni aggiuntive sulla mensa</p>
                 </div>
                 <button onclick="openAddModal('mensa')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-indigo-200 transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Pubblica Menu / PDF</span>
@@ -599,7 +615,7 @@
         let fondoChartInstance = null;
         let previousDataSnapshot = null;
 
-        // MENU AUTUNNALE COMUNE DELL'AQUILA (Novembre 2026 - Estratto Ufficiale Vivenda)
+        // MENU AUTUNNALE COMUNE DELL'AQUILA - NORMALE (Novembre 2026 - Vivenda)
         const menuMensaComune = {
             settimana1: {
                 1: { giorno: "Lunedì", primo: "Pasta olio e Parmigiano", secondo: "Platessa gratinata", contorno: "Piselli al tegame" },
@@ -612,7 +628,7 @@
                 1: { giorno: "Lunedì", primo: "Riso e piselli", secondo: "Ciliegine di mozzarella", contorno: "Insalata verde" },
                 2: { giorno: "Martedì", primo: "Sagnette e fagioli", secondo: "Bocconcini di Pollo gratinati", contorno: "Bieta all'olio" },
                 3: { giorno: "Mercoledì", primo: "Pasta al pomodoro", secondo: "Merluzzo gratinato", contorno: "Spinaci all'olio" },
-                4: { giorno: "Giovedì", primo: "Pasta al ragù di pesce fresco dell'Adriatico", secondo: "Frittata al forno + Dolce*", contorno: "Carote gratinate" },
+                4: { giorno: "Giovedì", primo: "Pasta al ragù di pesce fresco dell'Adriatico", segundo: "Frittata al forno + Dolce*", contorno: "Carote gratinate" },
                 5: { giorno: "Venerdì", primo: "Pasta olio e Parmigiano", secondo: "Polpette di maiale", contorno: "Patate al forno" }
             },
             settimana3: {
@@ -631,9 +647,47 @@
             }
         };
 
+        // MENU AUTUNNALE COMUNE DELL'AQUILA - LEGGERO (Novembre 2026 - Vivenda)[cite: 7]
+        const menuMensaLeggero = {
+            settimana1: {
+                1: { giorno: "Lunedì", primo: "Pasta in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" },
+                2: { giorno: "Martedì", primo: "Pasta in bianco", secondo: "Scaglie di Parmigiano", contorno: "Verdura cruda" },
+                3: { giorno: "Mercoledì", primo: "Riso in bianco", secondo: "Carne al vapore", contorno: "Carote all'olio" },
+                4: { giorno: "Giovedì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Verdura cotta" },
+                5: { giorno: "Venerdì", primo: "Pasta in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" }
+            },
+            settimana2: {
+                1: { giorno: "Lunedì", primo: "Riso in bianco", secondo: "Scaglie di Parmigiano", contorno: "Verdura cruda" },
+                2: { giorno: "Martedì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Verdura cotta" },
+                3: { giorno: "Mercoledì", primo: "Pasta in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" },
+                4: { giorno: "Giovedì", primo: "Pasta in bianco", secondo: "Pesce al vapore", contorno: "Carote all'olio" },
+                5: { giorno: "Venerdì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Patate all'olio" }
+            },
+            settimana3: {
+                1: { giorno: "Lunedì", primo: "Pasta integrale in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" },
+                2: { giorno: "Martedì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Verdura cotta" },
+                3: { giorno: "Mercoledì", primo: "Riso in bianco", secondo: "Carne al vapore", contorno: "Verdura cotta" },
+                4: { giorno: "Giovedì", primo: "Pasta in bianco", secondo: "Scaglie di Parmigiano", contorno: "Verdura cruda" },
+                5: { giorno: "Venerdì", primo: "Riso in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" }
+            },
+            settimana4: {
+                1: { giorno: "Lunedì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Patate all'olio" },
+                2: { giorno: "Martedì", primo: "Riso in bianco", secondo: "Pesce al vapore", contorno: "Verdura cotta" },
+                3: { giorno: "Mercoledì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Carote all'olio" },
+                4: { giorno: "Giovedì", primo: "Pasta in bianco", secondo: "Scaglie di Parmigiano", contorno: "Verdura cruda" },
+                5: { giorno: "Venerdì", primo: "Pasta in bianco", secondo: "Carne al vapore", contorno: "Verdura cotta" }
+            }
+        };
+
         function renderMenuDelGiorno() {
             const container = document.getElementById('menuDelGiornoContainer');
-            if (!container) return;
+            const tipoMenuSelect = document.getElementById('tipoMenuSelect');
+            if (!container || !tipoMenuSelect) return;
+
+            const tipoScelto = tipoMenuSelect.value; // 'normale' o 'leggero'
+            const datasetAttivo = tipoScelto === 'leggero' ? menuMensaLeggero : menuMensaComune;
+            const etichettaStile = tipoScelto === 'leggero' ? '🥗 Menu Leggero del Giorno' : '🍽️ Menu Normale del Giorno';
+            const badgeColore = tipoScelto === 'leggero' ? 'bg-amber-500/20 text-amber-200 border-amber-400/30' : 'bg-white/20 text-emerald-200 border-white/10';
 
             const now = new Date();
             const dayOfWeek = now.getDay();
@@ -655,12 +709,12 @@
             else if (currentDateNum >= 23 && currentDateNum <= 27) settimanaKey = 'settimana4';
             else if (currentDateNum >= 30) settimanaKey = 'settimana1';
 
-            const oggiMenu = menuMensaComune[settimanaKey][dayOfWeek];
+            const oggiMenu = datasetAttivo[settimanaKey][dayOfWeek];
 
             container.innerHTML = `
                 <div class="bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 text-white p-5 rounded-3xl shadow-lg border border-emerald-500/30">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-emerald-200 border border-white/10">🍽️ Menu Ufficiale del Giorno (${oggiMenu.giorno})</span>
+                        <span class="backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${badgeColore}">${etichettaStile} (${oggiMenu.giorno})</span>
                         <span class="text-xs text-emerald-200 font-bold">Comune dell'Aquila • Novembre</span>
                     </div>
                     <div class="space-y-1 text-xs sm:text-sm font-medium mt-2">
@@ -1506,7 +1560,7 @@
                 </div>
             `);
 
-            // Menu Mensa
+            // Menu Mensa (PDF / Pubblicazioni)
             renderCustomSection('mensa', 'list-mensa', item => {
                 const appUrl = cleanBaseUrl + '#mensa';
                 let waText = `🍽️ *Menu Mensa 3E (${item.title})*\n${item.details ? item.details + '\n' : ''}`;
@@ -1519,7 +1573,7 @@
                 return `
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200/80 flex justify-between items-start space-x-3 transition hover:shadow-md">
                     <div class="space-y-2.5 flex-1">
-                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-utensils"></i> Menu Mensa</span>
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-100"><i class="fa-solid fa-file-pdf"></i> Pubblicazione Mensa</span>
                         <h3 class="font-black text-slate-900 text-base">${escapeHtml(item.title)}</h3>
                         ${item.details ? `<p class="text-sm text-slate-600 font-medium leading-relaxed">${escapeHtml(item.details)}</p>` : ''}
                         ${renderMultipleLinks(item.fileUrl)}
