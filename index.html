@@ -55,7 +55,7 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-indigo-50/40 to-blue-50/30 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
-    <!-- Container Notifiche Admin -->
+    <!-- Container Notifiche Admin / Genitori -->
     <div id="adminNotificationContainer" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none max-w-sm w-full px-4"></div>
 
     <!-- Header con Orologio in Tempo Reale -->
@@ -758,44 +758,45 @@
             `;
         }
 
-        function requestBrowserNotificationPermission() {
-            if ("Notification" in window && Notification.permission === "default" && isAdmin) {
-                Notification.requestPermission();
+        // Funzione Sintesi Audio (Web Audio API nativa) per Genitori
+        function playParentNotificationSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                
+                const playTone = (freq, start, duration) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime + start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + duration);
+                };
+
+                playTone(587.33, 0, 0.15); // Nota Re5
+                playTone(880, 0.15, 0.3);    // Nota La5
+            } catch (e) {
+                console.log("Audio riprodotto o bloccato da policy browser", e);
             }
         }
 
-        function showAdminNotification(message, type = 'success') {
-            if (!isAdmin) return;
-
-            if ("Notification" in window) {
-                if (Notification.permission === "granted") {
-                    try {
-                        const notifTitle = type === 'success' ? "Classe 3E - Nuovo Contenuto" : "Classe 3E - Avviso Admin";
-                        const notification = new Notification(notifTitle, {
-                            body: message,
-                            icon: "https://cdn-icons-png.flaticon.com/512/3409/3409245.png"
-                        });
-                        notification.onclick = function() {
-                            window.focus();
-                            notification.close();
-                        };
-                    } catch (e) {
-                        console.error("Errore notifica nativa:", e);
-                    }
-                } else if (Notification.permission !== "denied") {
-                    Notification.requestPermission();
-                }
-            }
+        function playNotificationVisualAndAudio(message) {
+            playParentNotificationSound();
 
             const container = document.getElementById('adminNotificationContainer');
             if (!container) return;
 
             const notif = document.createElement('div');
-            notif.className = `pointer-events-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border ${type === 'success' ? 'border-emerald-500/50' : 'border-indigo-500/50'} flex items-center justify-between space-x-3 transition transform translate-y-2 opacity-0 duration-300`;
+            notif.className = `pointer-events-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center justify-between space-x-3 transition transform translate-y-2 opacity-0 duration-300`;
             notif.innerHTML = `
                 <div class="flex items-center space-x-2.5">
-                    <span class="w-8 h-8 rounded-xl ${type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'} flex items-center justify-center text-sm shrink-0">
-                        <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-bell'}"></i>
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm shrink-0">
+                        <i class="fa-solid fa-bell"></i>
                     </span>
                     <span class="text-xs font-bold tracking-wide">${escapeHtml(message)}</span>
                 </div>
@@ -809,7 +810,7 @@
             setTimeout(() => {
                 notif.classList.add('translate-y-2', 'opacity-0');
                 setTimeout(() => notif.remove(), 300);
-            }, 4000);
+            }, 4500);
         }
 
         let snakeCanvas, snakeCtx;
@@ -843,7 +844,8 @@
                                 const prevCount = previousDataSnapshot[section] ? Object.keys(previousDataSnapshot[section]).length : 0;
                                 const newCount = Object.keys(val[section]).length;
                                 if (newCount > prevCount) {
-                                    showAdminNotification(`Nuovo elemento pubblicato in: ${section.toUpperCase()}!`, 'success');
+                                    // Notifica visiva e sonora per i genitori su qualsiasi sezione aggiornata
+                                    playNotificationVisualAndAudio(`Nuovo aggiornamento in: ${section.toUpperCase()}!`);
                                 }
                             }
                         });
@@ -873,7 +875,6 @@
             checkPlayerSessionUI();
             renderMenuDelGiorno();
             renderFondoChart();
-            if (isAdmin) requestBrowserNotificationPermission();
         });
 
         function checkPlayerSessionUI() {
@@ -1120,7 +1121,6 @@
                 if (adminLoginForm) adminLoginForm.classList.add('hidden');
                 if (adminLogoutDiv) adminLogoutDiv.classList.remove('hidden');
                 localStorage.setItem('isAdmin_3e', 'true');
-                requestBrowserNotificationPermission();
             } else {
                 adminOnlyElements.forEach(el => el.classList.add('hidden'));
                 if (adminIcon) adminIcon.className = "fa-solid fa-lock text-xs text-amber-300";
